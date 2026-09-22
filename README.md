@@ -247,3 +247,17 @@ pnpm format
 - [Supabase anonymous sign-ins](https://supabase.com/docs/guides/auth/auth-anonymous)
 - [Supabase Row Level Security](https://supabase.com/docs/guides/database/postgres/row-level-security)
 - [Drizzle and Supabase](https://orm.drizzle.team/docs/connect-supabase)
+
+## Vercelで環境変数が未設定と表示される場合
+
+このメッセージはDB接続やRLSの検査結果ではなく、ブラウザ用ビルドに接続設定が入っていないことを示します。SQLの再実行では解消しません。
+
+1. Vercelの対象アプリ → Settings → Environment Variablesで、省略表示ではなく編集画面の完全な名前を確認します。URLは `NEXT_PUBLIC_SUPABASE_URL`、キーは `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` です。
+2. 旧形式の連携向けに `NEXT_PUBLIC_SUPABASE_ANON_KEY` も利用できます。両方ある場合はPublishable keyを優先します。`SUPABASE_URL` や `SUPABASE_PUBLISHABLE_KEY` のように `NEXT_PUBLIC_` がない変数は、ブラウザ用の設定としては読みません。
+3. 名前だけでなく値が空でないこと、URLとキーがSQLを適用した同一プロジェクトのものかを確認します。入力前後の空白・改行はアプリで除去します。
+4. Production（プレビューを使う場合はPreviewにも）に保存し、新しいビルドを作成します。切り分け時はRedeploy画面の「Use existing Build Cache」を外してください。
+5. 最新デプロイのVisitから開き、対象ドメインにそのデプロイが反映されていることを確認します。
+
+修正版では不足している変数の名前だけを画面に表示します。さらにVercelの非デモビルドは設定不足で失敗し、不足変数名をBuild Logsに表示します。キーの値はログに出力しません。既存のデプロイにこの改善を反映するには、修正版をGitHubにpushした後にビルドする必要があります。
+
+`relation "anonymous_users" already exists` が出た場合、元のCREATE文を繰り返さず、`supabase/diagnostics/check_setup.sql` で既存オブジェクトの有無とRLSの有効化を確認できます。このSQLはデータを変更しません。すべてOKでも、Vercel環境変数や接続先プロジェクトの一致は別途確認が必要です。

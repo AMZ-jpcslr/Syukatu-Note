@@ -17,7 +17,12 @@ import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { useStore, useAction } from "./providers";
 import { issueTransfer, redeemTransfer, importBundle } from "@/lib/repository";
-import { isDemo, isConfigured, initializeUser } from "@/lib/supabase";
+import {
+  isDemo,
+  isConfigured,
+  initializeUser,
+  configurationError,
+} from "@/lib/supabase";
 import {
   parseCsv,
   exportCsv,
@@ -116,9 +121,7 @@ export function Settings() {
             </div>
           </dl>
           {!isDemo && !isConfigured && (
-            <p className="field-error">
-              環境変数を設定してください。READMEのSupabase設定手順を参照できます。
-            </p>
+            <p className="field-error">{configurationError}</p>
           )}
         </section>
         <section className="panel settings-panel">
