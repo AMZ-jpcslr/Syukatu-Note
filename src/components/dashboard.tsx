@@ -1,31 +1,27 @@
 "use client";
 import Link from "next/link";
 import { useState } from "react";
-import {
-  Plus,
-  ArrowRight,
-  ArrowUpRight,
-  Building2,
-  Clock3,
-  CheckCheck,
-  Flag,
-  CalendarDays,
-  Circle,
-  Check,
-  ChevronRight,
-} from "lucide-react";
-import { useStore, useAction } from "./providers";
-import { saveChild } from "@/lib/repository";
+import { Plus, CalendarDays, Check } from "lucide-react";
+import { useStore, useTemplates, useAction } from "./providers";
+import { applyTemplateDeadline, saveChild } from "@/lib/repository";
+import { deadlineChanged } from "@/lib/templates";
 import {
   eventsFromStore,
   daysUntil,
-  progress,
   displayDate,
   jstTime,
-  todayKey,
+  progress,
 } from "@/lib/dates";
-import { statuses, priorities } from "@/lib/types";
+import {
+  statuses,
+  priorities,
+  applicationStatusLabels,
+  type CalendarEvent,
+  type Application,
+  type Template,
+} from "@/lib/types";
 import { Button } from "./ui/button";
+import { Dialog } from "./ui/dialog";
 import { ApplicationForm } from "./application-form";
 import {
   CompanyMark,
@@ -37,68 +33,149 @@ import {
   Progress,
   StatusBadge,
 } from "./shared";
+function ScheduleList({
+  title,
+  events,
+  deadline = false,
+}: {
+  title: string;
+  events: CalendarEvent[];
+  deadline?: boolean;
+}) {
+  return (
+    <section className="panel">
+      <div className="panel-heading">
+        <h2>
+          {title}
+          <span className="count-pill">{events.length}</span>
+        </h2>
+        <Link className="text-link" href="/calendar">
+          カレンダーへ
+        </Link>
+      </div>
+      {events.slice(0, 8).map((e) => (
+        <Link
+          className="deadline-row"
+          href={`/companies/${e.applicationId}`}
+          key={e.id}
+        >
+          <CalendarDays size={16} />
+          <div>
+            <strong>{e.title}</strong>
+            <small>{e.type}</small>
+          </div>
+          {deadline ? (
+            <DueBadge date={e.start} />
+          ) : (
+            <span className="text-xs">
+              {displayDate(e.start)}
+              {!e.allDay && ` ${jstTime(e.start)}`}
+            </span>
+          )}
+        </Link>
+      ))}
+      {events.length > 8 && (
+        <Link href="/calendar" className="panel-bottom-link">
+          残り{events.length - 8}件を見る
+        </Link>
+      )}
+      {!events.length && <Empty text="該当する予定はありません" />}
+    </section>
+  );
+}
 export function Dashboard() {
   const { data, error, isPending, refetch } = useStore();
+  const templates = useTemplates();
   const [add, setAdd] = useState(false);
+  const [update, setUpdate] = useState<{ a: Application; t: Template }>();
   const action = useAction();
   if (isPending) return <Loading />;
   if (error || !data) return <ErrorState error={error} retry={refetch} />;
-  const events = eventsFromStore(data);
+  const events = eventsFromStore(data).filter((e) => !e.completed);
   const soon = events.filter(
-    (e) => !e.completed && daysUntil(e.start) >= 0 && daysUntil(e.start) <= 7,
+    (e) => daysUntil(e.start) >= 0 && daysUntil(e.start) <= 7,
+  );
+  const urgent = soon.filter(
+    (e) => e.allDay && e.type !== "応募開始" && daysUntil(e.start) <= 3,
+  );
+  const selections = events.filter(
+    (e) =>
+      daysUntil(e.start) >= 0 &&
+      [
+        "一次面接",
+        "二次面接",
+        "最終面接",
+        "Webテスト",
+        "インターン",
+        "GD",
+      ].includes(e.type),
+  );
+  const overdue = events.filter(
+    (e) => e.type !== "応募開始" && daysUntil(e.start) < 0,
   );
   const todayTasks = data.tasks.filter(
-    (t) => t.due_date && daysUntil(t.due_date) === 0,
+    (t) => !t.completed && t.due_date && daysUntil(t.due_date) === 0,
   );
   const todaySteps = data.steps.filter(
-    (t) =>
-      (t.deadline && daysUntil(t.deadline) === 0) ||
-      (t.scheduled_at && daysUntil(t.scheduled_at) === 0),
+    (s) =>
+      !s.completed &&
+      ((s.deadline && daysUntil(s.deadline) === 0) ||
+        (s.scheduled_at && daysUntil(s.scheduled_at) === 0)) &&
+      !todayTasks.some((t) => t.selection_step_id === s.id),
   );
-  const handledIds = new Set([
-    ...todayTasks.map((t) => t.id),
-    ...todaySteps.flatMap((t) => [t.id + "-due", t.id + "-at"]),
+  const handled = new Set([
+    ...todayTasks.flatMap((t) => [
+      t.id,
+      ...(t.selection_step_id
+        ? [`${t.selection_step_id}-due`, `${t.selection_step_id}-at`]
+        : []),
+    ]),
+    ...todaySteps.flatMap((s) => [`${s.id}-due`, `${s.id}-at`]),
   ]);
   const otherToday = events.filter(
     (e) =>
-      daysUntil(e.start) === 0 &&
-      !e.completed &&
-      !handledIds.has(e.id) &&
-      e.type !== "応募開始",
+      daysUntil(e.start) === 0 && !handled.has(e.id) && e.type !== "応募開始",
   );
-  const todayCount =
-    otherToday.length +
-    [...todayTasks, ...todaySteps].filter((t) => !t.completed).length;
-  const deadlines = soon.filter((e) => e.allDay && e.type !== "応募開始");
-  const selections = soon.filter((e) =>
-    [
-      "一次面接",
-      "二次面接",
-      "最終面接",
-      "Webテスト",
-      "インターン",
-      "GD",
-    ].includes(e.type),
+  const publicTemplates = (templates.data ?? []).filter(
+    (t) => t.public && !!t.url,
   );
-  const pending = data.applications
-    .filter((a) => ["検討中", "応募予定"].includes(a.status))
-    .sort((a, b) =>
-      (a.application_deadline ?? "9999").localeCompare(
-        b.application_deadline ?? "9999",
-      ),
-    );
-  const overdue = events.filter(
-    (e) => !e.completed && e.type !== "応募開始" && daysUntil(e.start) < 0,
+  const updates = data.applications.flatMap((a) => {
+    const t = publicTemplates.find((t) => t.id === a.recruitment_template_id);
+    return t && deadlineChanged(a, t) ? [{ a, t }] : [];
+  });
+  const watched = publicTemplates.filter((t) =>
+    data.watchlist?.some((w) => w.recruitment_template_id === t.id),
   );
-  const industries = Object.entries(
-    data.applications.reduce<Record<string, number>>(
-      (acc, a) => ({
-        ...acc,
-        [a.industry || "未設定"]: (acc[a.industry || "未設定"] ?? 0) + 1,
-      }),
-      {},
-    ),
-  ).sort((a, b) => b[1] - a[1]);
+  const appList = (title: string, items: Application[]) => (
+    <section className="panel">
+      <div className="panel-heading">
+        <h2>
+          {title}
+          <span className="count-pill">{items.length}</span>
+        </h2>
+        <Link href="/companies" className="text-link">
+          企業一覧へ
+        </Link>
+      </div>
+      {items.slice(0, 6).map((a) => (
+        <Link className="deadline-row" href={`/companies/${a.id}`} key={a.id}>
+          <CompanyMark name={a.company_name} small />
+          <div>
+            <strong>{a.company_name}</strong>
+            <small>{a.position_name || a.job_category}</small>
+          </div>
+          <StatusBadge status={a.status} />
+          <Progress {...progress(data, a.id)} />
+        </Link>
+      ))}
+      {items.length > 6 && (
+        <Link href="/companies" className="panel-bottom-link">
+          残り{items.length - 6}社を見る
+        </Link>
+      )}
+      {!items.length && <Empty text="まだ登録されていません" />}
+    </section>
+  );
   return (
     <>
       <PageHeading
@@ -117,364 +194,197 @@ export function Dashboard() {
           企業を追加
         </Button>
       </PageHeading>
-      <div className="stats-grid">
-        {[
-          {
-            label: "管理している企業",
-            value: data.applications.length,
-            unit: "社",
-            icon: Building2,
-            note: "あなたの可能性を広げよう",
-            href: "/companies",
-          },
-          {
-            label: "今週の締切",
-            value: deadlines.length,
-            unit: "件",
-            icon: Clock3,
-            note: "7日以内に対応すること",
-            href: "/calendar",
-          },
-          {
-            label: "選考中の企業",
-            value: data.applications.filter((a) => a.status === "選考中")
-              .length,
-            unit: "社",
-            icon: CheckCheck,
-            note: "次のステップへ進もう",
-            href: "/companies?status=選考中",
-          },
-          {
-            label: "内定",
-            value: data.applications.filter((a) => a.status === "内定").length,
-            unit: "社",
-            icon: Flag,
-            note: "これまでの積み重ね",
-            href: "/companies?status=内定",
-          },
-        ].map(({ label, value, unit, icon: Icon, note, href }, i) => (
-          <Link href={href} key={label} className="stat-card">
-            <div>
-              <span>{label}</span>
-              <Icon size={17} />
-            </div>
-            <strong className={i === 1 && value > 0 ? "text-warning" : ""}>
-              {value}
-              <small>{unit}</small>
-            </strong>
-            <p>
-              {note}
-              <ArrowUpRight size={13} />
-            </p>
-          </Link>
-        ))}
-      </div>
-      {overdue.length > 0 && (
-        <Link className="overdue-notice" href="/tasks">
-          期限を過ぎた未完了の予定が {overdue.length}{" "}
-          件あります。タスクとカレンダーを確認してください。
-          <ArrowRight size={15} />
+      {!!overdue.length && (
+        <Link href="/calendar" className="overdue-notice">
+          期限超過の未完了予定が{overdue.length}
+          件あります。カレンダーで確認してください。
         </Link>
       )}
-      <div className="dashboard-grid">
-        <div className="dashboard-primary">
-          <section className="panel today-panel">
-            <div className="panel-heading">
-              <h2>
-                <span className="section-dot" />
-                今日やること<span className="count-pill">{todayCount}</span>
-              </h2>
-              <span className="muted text-xs">
-                {displayDate(todayKey(), "M月d日")}・TODAY
+      <div className="dashboard-v11">
+        <section className="panel today-panel">
+          <div className="panel-heading">
+            <h2>
+              <span className="section-dot" />
+              今日やること
+              <span className="count-pill">
+                {todayTasks.length + todaySteps.length + otherToday.length}
               </span>
+            </h2>
+          </div>
+          {[
+            ...todayTasks.map((t) => ({ item: t, table: "tasks" as const })),
+            ...todaySteps.map((s) => ({
+              item: s,
+              table: "selection_steps" as const,
+            })),
+          ].map(({ item, table }) => (
+            <div className="task-row" key={item.id}>
+              <button
+                className="task-check"
+                aria-label={`${item.title}を完了にする`}
+                disabled={action.busy}
+                onClick={() =>
+                  action.run(() =>
+                    saveChild(table, { ...item, completed: true }),
+                  )
+                }
+              >
+                {item.completed && <Check size={12} />}
+              </button>
+              <Link href={`/companies/${item.user_application_id}`}>
+                <strong>{item.title}</strong>
+                <small>
+                  {
+                    data.applications.find(
+                      (a) => a.id === item.user_application_id,
+                    )?.company_name
+                  }
+                </small>
+              </Link>
+              <span className="today-label">今日</span>
             </div>
-            <div className="task-list">
-              {todayTasks.map((t) => (
-                <div className="task-row" key={t.id}>
-                  <button
-                    aria-label={`${t.title}を${t.completed ? "未完了" : "完了"}にする`}
-                    className={`task-check ${t.completed ? "checked" : ""}`}
-                    disabled={action.busy}
-                    onClick={() =>
-                      action.run(() =>
-                        saveChild("tasks", { ...t, completed: !t.completed }),
-                      )
-                    }
-                  >
-                    {t.completed && <Check size={12} />}
-                  </button>
-                  <Link
-                    href={`/companies/${t.user_application_id}`}
-                    className={t.completed ? "line-through muted" : ""}
-                  >
-                    <strong>{t.title}</strong>
-                    <small>
-                      {
-                        data.applications.find(
-                          (a) => a.id === t.user_application_id,
-                        )?.company_name
-                      }{" "}
-                      <span>· {t.task_type}</span>
-                    </small>
-                  </Link>
-                  <span className="today-label">今日</span>
-                </div>
-              ))}
-              {todaySteps.map((s) => (
-                <div className="task-row" key={s.id}>
-                  <button
-                    aria-label={`${s.title}を${s.completed ? "未完了" : "完了"}にする`}
-                    disabled={action.busy}
-                    className={`task-check ${s.completed ? "checked" : ""}`}
-                    onClick={() =>
-                      action.run(() =>
-                        saveChild("selection_steps", {
-                          ...s,
-                          completed: !s.completed,
-                        }),
-                      )
-                    }
-                  >
-                    {s.completed && <Check size={12} />}
-                  </button>
-                  <Link href={`/companies/${s.user_application_id}`}>
-                    <strong className={s.completed ? "line-through muted" : ""}>
-                      {s.title}
-                    </strong>
-                    <small>
-                      {
-                        data.applications.find(
-                          (a) => a.id === s.user_application_id,
-                        )?.company_name
-                      }{" "}
-                      · {s.step_type}
-                    </small>
-                  </Link>
-                  <span className="today-label">
-                    {s.scheduled_at ? jstTime(s.scheduled_at) : "今日"}
-                  </span>
-                </div>
-              ))}
-              {otherToday.map((e) => (
-                <Link
-                  key={e.id}
-                  href={`/companies/${e.applicationId}`}
-                  className="task-row"
-                >
-                  <CalendarDays size={17} className="muted" />
-                  <div className="flex-1">
-                    <strong>{e.title}</strong>
-                    <small>{e.type}</small>
-                  </div>
-                  <span className="today-label">
-                    {e.allDay ? "今日" : jstTime(e.start)}
-                  </span>
-                </Link>
-              ))}
-              {todayTasks.length + todaySteps.length + otherToday.length ===
-                0 && (
-                <Empty text="今日のタスクはありません。次の準備を進めましょう。" />
-              )}
-            </div>
-            <Link href="/tasks" className="panel-bottom-link">
-              すべてのタスクを見る
-              <ArrowRight size={14} />
+          ))}
+          {otherToday.map((e) => (
+            <Link
+              className="task-row"
+              href={`/companies/${e.applicationId}`}
+              key={e.id}
+            >
+              <CalendarDays size={15} />
+              <strong>{e.title}</strong>
+              <span className="today-label">
+                {e.allDay ? "今日締切" : jstTime(e.start)}
+              </span>
             </Link>
-          </section>
-          <section className="panel">
-            <div className="panel-heading">
-              <h2>
-                今週の締切<span className="count-pill">{deadlines.length}</span>
-              </h2>
-              <Link href="/calendar" className="text-link">
-                カレンダーへ
-                <ArrowUpRight size={14} />
-              </Link>
-            </div>
-            {deadlines.length ? (
-              <div className="deadline-list">
-                {deadlines.slice(0, 6).map((e) => {
-                  const a = data.applications.find(
-                    (a) => a.id === e.applicationId,
-                  )!;
-                  return (
-                    <Link
-                      key={e.id}
-                      className="deadline-row"
-                      href={`/companies/${a.id}`}
-                    >
-                      <CompanyMark name={a.company_name} small />
-                      <div>
-                        <strong>{a.company_name}</strong>
-                        <small>
-                          {e.title.split(" · ").slice(1).join(" · ")}
-                        </small>
-                      </div>
-                      <DueBadge date={e.start} />
-                      <ChevronRight size={15} className="muted" />
-                    </Link>
-                  );
-                })}
-              </div>
-            ) : (
-              <Empty text="今週の締切はありません" />
-            )}
-          </section>
-          <section className="panel">
-            <div className="panel-heading">
-              <h2>次に応募する企業</h2>
-              <Link href="/companies" className="text-link">
-                すべて見る
-                <ArrowUpRight size={14} />
-              </Link>
-            </div>
-            <div className="table-scroll">
-              <table>
-                <thead>
-                  <tr>
-                    <th>企業 / 募集</th>
-                    <th>締切</th>
-                    <th>ステータス</th>
-                    <th>進捗</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {pending.slice(0, 4).map((a) => (
-                    <tr key={a.id}>
-                      <td>
-                        <Link
-                          className="company-cell"
-                          href={`/companies/${a.id}`}
-                        >
-                          <CompanyMark name={a.company_name} small />
-                          <div>
-                            <strong>{a.company_name}</strong>
-                            <small>{a.job_category}</small>
-                          </div>
-                        </Link>
-                      </td>
-                      <td>
-                        <DueBadge date={a.application_deadline} />
-                      </td>
-                      <td>
-                        <StatusBadge status={a.status} />
-                      </td>
-                      <td>
-                        <Progress {...progress(data, a.id)} />
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              {pending.length === 0 && (
-                <Empty text="応募予定の企業はありません" />
-              )}
-            </div>
-          </section>
-        </div>
-        <aside className="dashboard-secondary">
-          <section className="panel">
-            <div className="panel-heading">
-              <h2>直近の選考</h2>
-              <span className="muted text-xs">7 DAYS</span>
-            </div>
-            <div className="timeline">
-              {selections.slice(0, 4).map((e) => (
-                <Link
-                  href={`/companies/${e.applicationId}`}
-                  key={e.id}
-                  className="timeline-item"
-                >
-                  <span className="timeline-dot" />
-                  <p>
-                    {displayDate(e.start, "M月d日")}
-                    {!e.allDay && <span> · {jstTime(e.start)}</span>}
-                  </p>
-                  <strong>
-                    {
-                      data.applications.find((a) => a.id === e.applicationId)
-                        ?.company_name
-                    }
-                  </strong>
-                  <small>{e.type}</small>
-                </Link>
-              ))}
-              {selections.length === 0 && (
-                <Empty text="直近の選考はありません" />
-              )}
-            </div>
-          </section>
-          <section className="panel">
-            <div className="panel-heading">
-              <h2>選考ステータス</h2>
-              <span className="muted text-xs">
-                {data.applications.length}社
-              </span>
-            </div>
-            <div className="status-summary">
-              {statuses.map((s, i) => {
-                const count = data.applications.filter(
-                  (a) => a.status === s,
-                ).length;
-                return (
-                  <div key={s}>
-                    <span>
-                      <i style={{ opacity: 1 - i * 0.1 }} />
-                      {s}
-                    </span>
-                    <strong>
-                      {count}
-                      <small>社</small>
-                    </strong>
-                  </div>
-                );
-              })}
-            </div>
-          </section>
-          <section className="discover-card">
-            <div className="flex justify-between items-center">
-              <span className="eyebrow">SHARED KNOWLEDGE</span>
-              <ArrowUpRight size={18} />
-            </div>
-            <h3>
-              まだ知らない企業と
-              <br />
-              出会おう。
-            </h3>
-            <p>
-              みんなの募集情報から、
-              <br />
-              自分の選択肢を広げる。
+          ))}
+          {!todayTasks.length && !todaySteps.length && !otherToday.length && (
+            <Empty text="今日のタスクはありません。次の準備を進めましょう。" />
+          )}
+          <Link href="/tasks" className="panel-bottom-link">
+            すべてのタスクを見る
+          </Link>
+        </section>
+        <ScheduleList title="締切まで3日以内" events={urgent} deadline />
+        <ScheduleList title="今週の予定" events={soon} />
+        <ScheduleList title="次の選考" events={selections} />
+        {appList(
+          "応募予定企業",
+          data.applications
+            .filter((a) => ["検討中", "応募予定"].includes(a.status))
+            .sort((a, b) =>
+              (a.application_deadline ?? "9999").localeCompare(
+                b.application_deadline ?? "9999",
+              ),
+            ),
+        )}
+        {appList(
+          "選考中企業",
+          data.applications.filter((a) => a.status === "選考中"),
+        )}
+        {appList(
+          "内定",
+          data.applications.filter((a) => a.status === "内定"),
+        )}
+        <section className="panel">
+          <div className="panel-heading">
+            <h2>最近追加された公開募集</h2>
+            <Link className="text-link" href="/templates">
+              募集を探す
+            </Link>
+          </div>
+          {templates.error ? (
+            <p role="alert" className="p-5 muted">
+              募集情報を取得できませんでした。
+              <button className="text-link" onClick={() => templates.refetch()}>
+                再試行
+              </button>
             </p>
-            <Link href="/templates">
-              みんなの募集を見る
-              <ArrowRight size={14} />
+          ) : (
+            publicTemplates.slice(0, 5).map((t) => (
+              <Link
+                href={`/templates#template-${t.id}`}
+                key={t.id}
+                className="deadline-row"
+              >
+                <CompanyMark small name={t.company_name} />
+                <div>
+                  <strong>{t.company_name}</strong>
+                  <small>
+                    {t.position_name} · {t.selection_type}
+                  </small>
+                </div>
+                <span className="tag">
+                  {applicationStatusLabels[t.application_status ?? "unknown"]}
+                </span>
+              </Link>
+            ))
+          )}
+          {!templates.isPending &&
+            !templates.error &&
+            !publicTemplates.length && (
+              <Empty text="公開募集はまだありません" />
+            )}
+        </section>
+        <section className="panel">
+          <div className="panel-heading">
+            <h2>気になる企業</h2>
+          </div>
+          {watched.map((t) => (
+            <Link
+              href={`/templates#template-${t.id}`}
+              key={t.id}
+              className="deadline-row"
+            >
+              <CompanyMark small name={t.company_name} />
+              <div>
+                <strong>{t.company_name}</strong>
+                <small>{t.position_name}</small>
+              </div>
             </Link>
-          </section>
-        </aside>
+          ))}
+          {!watched.length && (
+            <Empty text="募集を探す画面の「☆ 気になる」から保存できます" />
+          )}
+        </section>
+        <section className="panel">
+          <div className="panel-heading">
+            <h2>募集情報の更新</h2>
+          </div>
+          {updates.map(({ a, t }) => (
+            <div className="deadline-row" key={a.id}>
+              <div>
+                <strong>{a.company_name}：募集情報が更新されています</strong>
+                <small>
+                  コピー時 {a.copied_application_deadline ?? "未発表"} →
+                  公開募集 {t.application_deadline ?? "未発表"}
+                </small>
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setUpdate({ a, t })}
+              >
+                更新を反映
+              </Button>
+            </div>
+          ))}
+          {!updates.length && <Empty text="確認できる締切の変更はありません" />}
+        </section>
       </div>
       <div className="bottom-stats">
         <section className="panel">
           <div className="panel-heading">
-            <h2>業界別の応募状況</h2>
+            <h2>選考状況</h2>
           </div>
-          <div className="industry-bars">
-            {industries.map(([name, n]) => (
-              <div key={name}>
-                <span>{name}</span>
-                <div>
-                  <i
-                    style={{
-                      width: `${(n / Math.max(data.applications.length, 1)) * 100}%`,
-                    }}
-                  />
-                </div>
-                <strong>{n}</strong>
+          <div className="status-summary">
+            {statuses.map((s) => (
+              <div key={s}>
+                <span>{s}</span>
+                <strong>
+                  {data.applications.filter((a) => a.status === s).length}社
+                </strong>
               </div>
             ))}
-            {!industries.length && (
-              <p className="muted">企業を追加すると表示されます</p>
-            )}
           </div>
         </section>
         <section className="panel">
@@ -493,8 +403,63 @@ export function Dashboard() {
             ))}
           </div>
         </section>
+        <section className="panel">
+          <div className="panel-heading">
+            <h2>業界別の応募状況</h2>
+          </div>
+          <div className="status-summary">
+            {[
+              ...new Set(data.applications.map((a) => a.industry || "未設定")),
+            ].map((i) => (
+              <div key={i}>
+                <span>{i}</span>
+                <strong>
+                  {
+                    data.applications.filter(
+                      (a) => (a.industry || "未設定") === i,
+                    ).length
+                  }
+                  社
+                </strong>
+              </div>
+            ))}
+          </div>
+        </section>
       </div>
       <ApplicationForm open={add} onClose={() => setAdd(false)} />
+      <Dialog
+        open={!!update}
+        onOpenChange={(open) => !open && setUpdate(undefined)}
+        title="締切の更新を反映しますか？"
+        description={
+          update
+            ? `${update.a.company_name}：あなたの締切 ${update.a.application_deadline ?? "未発表"} を ${update.t.application_deadline ?? "未発表"} に変更します。`
+            : ""
+        }
+      >
+        <p className="muted text-sm">
+          個別に調整した締切も、この操作で置き換わります。
+        </p>
+        <div className="form-footer">
+          <Button variant="outline" onClick={() => setUpdate(undefined)}>
+            キャンセル
+          </Button>
+          <Button
+            disabled={action.busy}
+            onClick={async () => {
+              if (
+                update &&
+                (await action.run(() =>
+                  applyTemplateDeadline(update.a, update.t),
+                ))
+              )
+                setUpdate(undefined);
+            }}
+          >
+            この締切を反映
+          </Button>
+        </div>
+      </Dialog>
     </>
   );
 }

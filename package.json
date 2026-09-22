@@ -1,6 +1,6 @@
 {
   "name": "shukatsu-calendar",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -10,8 +10,10 @@
     "test": "vitest run",
     "test:e2e": "playwright test",
     "db:generate": "drizzle-kit generate",
-    "db:seed": "tsx scripts/seed.ts",
-    "format": "node node_modules/prettier/bin/prettier.cjs --write ."
+    "db:seed": "tsx scripts/seed-recruitment-templates.ts",
+    "format": "node node_modules/prettier/bin/prettier.cjs --write .",
+    "lint": "eslint . --max-warnings 0",
+    "db:seed:demo": "tsx scripts/seed.ts"
   },
   "dependencies": {
     "@fullcalendar/core": "6.1.21",
@@ -54,10 +56,12 @@
     "@types/react-dom": "latest",
     "dotenv": "latest",
     "drizzle-kit": "latest",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "^16.3.5",
     "prettier": "^3.9.8",
     "tailwindcss": "latest",
     "tsx": "latest",
-    "typescript": "latest",
+    "typescript": "6.0.2",
     "vitest": "latest"
   },
   "packageManager": "pnpm@11.19.0",

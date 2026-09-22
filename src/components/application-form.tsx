@@ -1,8 +1,9 @@
 "use client";
 import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
+import { TemplateCopyButtons } from "./template-card";
+import { applicationStatusLabels } from "@/lib/types";
 import {
   applicationSchema,
   defaultApplication,
@@ -10,7 +11,7 @@ import {
 } from "@/lib/validation";
 import type { Application } from "@/lib/types";
 import { selectionTypes, priorities, statuses } from "@/lib/types";
-import { saveApplication, copyTemplate } from "@/lib/repository";
+import { saveApplication } from "@/lib/repository";
 import { initializeUser } from "@/lib/supabase";
 import { similarTemplates } from "@/lib/templates";
 import { useAction, useTemplates } from "./providers";
@@ -27,11 +28,10 @@ export function ApplicationForm({
 }) {
   const { data: templates = [] } = useTemplates();
   const action = useAction();
-  const router = useRouter();
   const {
     register,
     handleSubmit,
-    watch,
+    control,
     reset,
     formState: { errors },
   } = useForm<ApplicationInput>({
@@ -51,19 +51,33 @@ export function ApplicationForm({
           : defaultApplication,
       );
   }, [open, application, reset]);
-  const [name, year, job, position] = watch([
-    "company_name",
-    "graduation_year",
-    "job_category",
-    "position_name",
-  ]);
+  const [name, year, job, position, selection] = useWatch({
+    control,
+    name: [
+      "company_name",
+      "graduation_year",
+      "job_category",
+      "position_name",
+      "selection_type",
+    ],
+  });
   const similar = application
     ? []
-    : similarTemplates(templates, name, year, job, position);
+    : similarTemplates(
+        templates,
+        name,
+        year,
+        job,
+        position,
+        6,
+        false,
+        selection,
+      );
   async function submit(values: ApplicationInput) {
     const ok = await action.run(async () => {
       const user = await initializeUser();
       await saveApplication({
+        ...application,
         ...values,
         id: application?.id ?? crypto.randomUUID(),
         user_id: user,
@@ -99,31 +113,20 @@ export function ApplicationForm({
         {similar.length > 0 && (
           <div className="similar-box span-2">
             <strong>似た募集があります</strong>
-            <p>公開募集を引用すると、選考フローもコピーできます。</p>
+            <p>公開募集を追加するか、フォームを入力して新規登録できます。</p>
             {similar.map((t) => (
               <div key={t.id}>
                 <span>
                   {t.company_name}
                   <small>
                     {t.graduation_year}卒 · {t.job_category} ·{" "}
-                    {t.selection_type}
+                    {t.selection_type} ·{" "}
+                    {applicationStatusLabels[t.application_status ?? "unknown"]}
                   </small>
                 </span>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  disabled={action.busy}
-                  onClick={() =>
-                    action.run(async () => {
-                      const id = await copyTemplate(t);
-                      onClose();
-                      router.push(`/companies/${id}?edit=1`);
-                    }, "引用しました")
-                  }
-                >
-                  引用して編集
-                </Button>
+                <div className="flex gap-2 flex-wrap">
+                  <TemplateCopyButtons template={t} compact />
+                </div>
               </div>
             ))}
           </div>

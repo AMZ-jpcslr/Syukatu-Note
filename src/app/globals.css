@@ -2264,3 +2264,96 @@ input[type="checkbox"] {
 .settings-panel label.btn {
   flex-direction: row;
 }
+/* v1.1: extend the existing monochrome workspace and compact mobile layout. */
+.company-tabs a {
+  padding: 14px 18px;
+  font-size: 13px;
+  color: var(--muted-foreground);
+  border-bottom: 2px solid transparent;
+}
+.company-tabs a.active {
+  color: var(--foreground);
+  border-bottom-color: var(--foreground);
+}
+.template-filters {
+  display: flex;
+  flex-wrap: wrap;
+}
+.template-filters > input,
+.template-filters > select {
+  flex: 1 1 180px;
+  min-width: 0;
+}
+.inline-check {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 13px;
+}
+.inline-check input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+}
+.template-facts dd {
+  overflow-wrap: anywhere;
+}
+.dashboard-v11 {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 24px;
+}
+.dashboard-v11 > section {
+  min-width: 0;
+}
+.dashboard-v11 .deadline-row {
+  flex-wrap: wrap;
+}
+.step-state {
+  width: auto;
+  min-width: 95px;
+  font-size: 12px;
+  padding: 5px 8px;
+}
+.qa-list label,
+.es-search label {
+  display: grid;
+  gap: 8px;
+  font-size: 13px;
+}
+.qa-list textarea,
+.es-search input {
+  width: 100%;
+}
+.similar-box > div {
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.icon-button:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+.priority-summary {
+  flex-wrap: wrap;
+}
+@media (max-width: 760px) {
+  .dashboard-v11 {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+  .template-filters > input,
+  .template-filters > select {
+    flex-basis: 100%;
+    width: 100%;
+  }
+  .flow-step-body {
+    min-width: 0;
+  }
+  .flow-step .record-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+  .flow-step h3 {
+    overflow-wrap: anywhere;
+  }
+}

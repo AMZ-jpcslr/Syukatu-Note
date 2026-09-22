@@ -92,6 +92,7 @@ export function eventsFromStore(store: Store): CalendarEvent[] {
     );
   });
   store.steps.forEach((s) => {
+    if (store.preferences?.auto_calendar === false) return;
     push(
       `${s.id}-due`,
       s.user_application_id,
@@ -110,22 +111,24 @@ export function eventsFromStore(store: Store): CalendarEvent[] {
         s.completed,
       );
   });
-  store.tasks.forEach((t) =>
-    push(
-      t.id,
-      t.user_application_id,
-      t.title,
-      t.task_type.includes("Webテスト")
-        ? "Webテスト"
-        : t.task_type.startsWith("ES")
-          ? "ES締切"
-          : t.task_type === "面接"
-            ? "一次面接"
-            : "その他",
-      t.due_date,
-      t.completed,
-    ),
-  );
+  store.tasks
+    .filter((t) => !t.selection_step_id)
+    .forEach((t) =>
+      push(
+        t.id,
+        t.user_application_id,
+        t.title,
+        t.task_type.includes("Webテスト")
+          ? "Webテスト"
+          : t.task_type.startsWith("ES")
+            ? "ES締切"
+            : t.task_type === "面接"
+              ? "一次面接"
+              : "その他",
+        t.due_date,
+        t.completed,
+      ),
+    );
   store.interviews.forEach((i) =>
     push(
       i.id,
@@ -143,9 +146,10 @@ export function eventsFromStore(store: Store): CalendarEvent[] {
   return events.sort((a, b) => a.start.localeCompare(b.start));
 }
 export function progress(store: Store, id: string) {
-  const items = [...store.tasks, ...store.steps].filter(
-    (x) => x.user_application_id === id,
-  );
+  const items = [
+    ...store.tasks.filter((t) => !t.selection_step_id),
+    ...store.steps,
+  ].filter((x) => x.user_application_id === id);
   const done = items.filter((x) => x.completed).length;
   return {
     done,

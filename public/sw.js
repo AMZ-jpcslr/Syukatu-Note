@@ -1,5 +1,5 @@
 // Cache only the offline fallback. Never cache private APIs, HTML or auth tokens.
-const CACHE = "shukatsu-shell-v1";
+const CACHE = "shukatsu-shell-v1.1";
 self.addEventListener("install", (event) =>
   event.waitUntil(
     caches

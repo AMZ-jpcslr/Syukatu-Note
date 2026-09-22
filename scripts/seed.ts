@@ -27,6 +27,9 @@ try {
           ...t,
           company_id: company.id,
           created_at: new Date(t.created_at),
+          last_verified_at: t.last_verified_at
+            ? new Date(t.last_verified_at)
+            : null,
         })
         .onConflictDoNothing();
     }

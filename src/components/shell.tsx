@@ -88,7 +88,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
           className={cn("nav-item", active("/templates") && "active")}
         >
           <Library size={18} />
-          みんなの募集
+          募集を探す
           <ArrowUpRight size={14} className="ml-auto" />
         </Link>
         <div className="sidebar-bottom">
@@ -105,7 +105,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
           </Link>
           <div className="sidebar-footer">
             <span>SHUKATSU NOTE</span>
-            <span>v1.0</span>
+            <span>v1.1</span>
           </div>
         </div>
       </aside>
@@ -117,7 +117,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
             <strong>
               {[
                 ...nav,
-                { href: "/templates", label: "みんなの募集" },
+                { href: "/templates", label: "募集を探す" },
                 { href: "/settings", label: "設定" },
               ].find((n) => active(n.href))?.label ?? "企業詳細"}
             </strong>

@@ -17,7 +17,11 @@ beforeAll(async () => {
  create table auth.users(id uuid primary key);
  create function auth.uid() returns uuid language sql stable as 'select nullif(current_setting(''request.jwt.claim.sub'',true),'''')::uuid';
  grant usage on schema auth,public to authenticated,anon; grant execute on function auth.uid() to authenticated,anon;`);
-  for (const file of ["202609220001_initial.sql", "202609220002_csv.sql"])
+  for (const file of [
+    "202609220001_initial.sql",
+    "202609220002_csv.sql",
+    "202609220003_v11.sql",
+  ])
     await db.exec(readFileSync("supabase/migrations/" + file, "utf8"));
   await db.exec(
     `insert into auth.users values('${A}'),('${B}'); insert into public.anonymous_users(id) values('${A}'),('${B}');`,
@@ -87,7 +91,7 @@ it("publications are allowlisted and citations remain independent", async () => 
     job_category: "ビジネス職",
     position_name: "2028卒",
     selection_type: "本選考",
-    url: "",
+    url: "https://example.com/recruit",
     public_flow: [{ title: "一次面接", step_type: "一次面接", memo: "leak" }],
     memo: "private",
   };
@@ -196,4 +200,425 @@ it("rolls back CSV import if a child is invalid", async () => {
   expect(
     (await db.query("select * from user_applications where id=$1", [id])).rows,
   ).toHaveLength(0);
+});
+it("isolates interviews, tasks, step results, priority and private notes", async () => {
+  await db.query(
+    "insert into interview_notes(user_id,user_application_id,scheduled_at,stage,format,reflection,qa_pairs) values($1,$2,now(),'一次面接','オンライン','private interview','[{\"question\":\"secret\",\"answer\":\"secret\"}]')",
+    [A, APP],
+  );
+  await db.query(
+    "insert into selection_steps(user_id,user_application_id,title,step_type,deadline,result,memo) values($1,$2,'ES','ES締切','2028-10-01','secret result','secret step')",
+    [A, APP],
+  );
+  expect((await db.query("select * from tasks")).rows).toHaveLength(1);
+  await as(B);
+  for (const table of [
+    "user_applications",
+    "interview_notes",
+    "selection_steps",
+    "tasks",
+    "es_questions",
+  ])
+    expect((await db.query(`select * from ${table}`)).rows).toHaveLength(0);
+});
+it("creates one linked task, updates its deadline, and synchronizes completion", async () => {
+  const {
+    rows: [step],
+  } = await db.query<{ id: string }>(
+    "insert into selection_steps(user_id,user_application_id,title,step_type,deadline) values($1,$2,'ES締切','ES締切','2028-10-01') returning id",
+    [A, APP],
+  );
+  await db.query(
+    "update selection_steps set deadline='2028-10-03' where id=$1",
+    [step.id],
+  );
+  const tasks = (
+    await db.query<{ id: string; title: string; due_date: string }>(
+      "select * from tasks",
+    )
+  ).rows;
+  expect(tasks).toHaveLength(1);
+  expect(tasks[0].title).toBe("ES提出");
+  expect(new Date(tasks[0].due_date).toISOString().slice(0, 10)).toBe(
+    "2028-10-03",
+  );
+  await db.query("update tasks set completed=true where id=$1", [tasks[0].id]);
+  expect(
+    (
+      await db.query<{ state: string }>(
+        "select state from selection_steps where id=$1",
+        [step.id],
+      )
+    ).rows[0].state,
+  ).toBe("完了");
+  await db.query("update selection_steps set state='進行中' where id=$1", [
+    step.id,
+  ]);
+  expect(
+    (await db.query<{ completed: boolean }>("select completed from tasks"))
+      .rows[0].completed,
+  ).toBe(false);
+});
+it("supports schedule-only tasks in JST and automation OFF without deleting existing tasks", async () => {
+  await db.query(
+    "insert into selection_steps(user_id,user_application_id,title,step_type,scheduled_at) values($1,$2,'面接','一次面接','2028-10-01T16:00:00Z')",
+    [A, APP],
+  );
+  expect(
+    (await db.query<{ due_date: string }>("select due_date::text from tasks"))
+      .rows[0].due_date,
+  ).toBe("2028-10-02");
+  await db.query(
+    "insert into user_preferences(user_id,auto_create_tasks) values($1,false)",
+    [A],
+  );
+  await db.query(
+    "insert into selection_steps(user_id,user_application_id,title,step_type,deadline) values($1,$2,'テスト','Webテスト','2028-10-01')",
+    [A, APP],
+  );
+  expect((await db.query("select * from tasks")).rows).toHaveLength(1);
+});
+it("keeps copied applications independent and applies a deadline only on explicit request", async () => {
+  const payload = {
+    company_name: "変更テスト",
+    graduation_year: 2028,
+    selection_type: "本選考",
+    url: "https://example.com/jobs",
+    application_deadline: "2028-10-01",
+  };
+  const tid = (
+    await db.query<{ id: string }>("select publish_template($1) id", [
+      JSON.stringify(payload),
+    ])
+  ).rows[0].id;
+  await as(B);
+  const aid = (
+    await db.query<{ id: string }>("select copy_template($1) id", [tid])
+  ).rows[0].id;
+  const original = (
+    await db.query<{
+      priority: string;
+      status: string;
+      copied_application_deadline: string;
+    }>("select * from user_applications where id=$1", [aid])
+  ).rows[0];
+  expect(original.priority).toBe("未設定");
+  expect(original.status).toBe("応募予定");
+  expect(
+    new Date(original.copied_application_deadline).toISOString().slice(0, 10),
+  ).toBe("2028-10-01");
+  await db.query(
+    "update user_applications set memo='mine',application_deadline='2028-10-02' where id=$1",
+    [aid],
+  );
+  await db.exec("reset role");
+  await db.query(
+    "update recruitment_templates set application_deadline='2028-10-05' where id=$1",
+    [tid],
+  );
+  await as(B);
+  expect(
+    (
+      await db.query<{ application_deadline: string }>(
+        "select application_deadline::text from user_applications where id=$1",
+        [aid],
+      )
+    ).rows[0].application_deadline,
+  ).toBe("2028-10-02");
+  await db.query("select apply_template_deadline($1,'2028-10-05')", [aid]);
+  const updated = (
+    await db.query<{
+      memo: string;
+      application_deadline: string;
+      copied_application_deadline: string;
+    }>("select * from user_applications where id=$1", [aid])
+  ).rows[0];
+  expect(updated.memo).toBe("mine");
+  expect(
+    new Date(updated.application_deadline).toISOString().slice(0, 10),
+  ).toBe("2028-10-05");
+  expect(
+    new Date(updated.copied_application_deadline).toISOString().slice(0, 10),
+  ).toBe("2028-10-05");
+});
+it("rejects a stale deadline revision without changing the personal application", async () => {
+  const tid = (
+    await db.query<{ id: string }>("select publish_template($1) id", [
+      JSON.stringify({
+        company_name: "revision",
+        graduation_year: 2028,
+        selection_type: "本選考",
+        url: "https://example.com",
+        application_deadline: "2028-11-01",
+      }),
+    ])
+  ).rows[0].id;
+  const aid = (
+    await db.query<{ id: string }>("select copy_template($1) id", [tid])
+  ).rows[0].id;
+  await expect(
+    db.query("select apply_template_deadline($1,'2028-10-01')", [aid]),
+  ).rejects.toThrow();
+});
+it("never promotes user-supplied verification claims and rejects publication without an official URL", async () => {
+  const payload = {
+    company_name: "unverified",
+    graduation_year: 2028,
+    selection_type: "未発表",
+    url: "https://example.com",
+    verification_status: "verified",
+    source_type: "official",
+    last_verified_at: new Date().toISOString(),
+    notes_public: "private injected note",
+  };
+  await db.query("select publish_template($1)", [JSON.stringify(payload)]);
+  const row = (
+    await db.query<{ verification_status: string; notes_public: string }>(
+      "select * from recruitment_templates",
+    )
+  ).rows[0];
+  expect(row.verification_status).toBe("unverified");
+  expect(row.notes_public).toBe("");
+  await expect(
+    db.query("select publish_template($1)", [
+      JSON.stringify({ ...payload, url: "" }),
+    ]),
+  ).rejects.toThrow();
+});
+it("hides legacy public templates without URLs from other users", async () => {
+  await db.exec("reset role");
+  const c = (
+    await db.query<{ id: string }>(
+      "insert into companies(name) values('legacy') returning id",
+    )
+  ).rows[0].id;
+  await db.query(
+    "insert into recruitment_templates(company_id,company_name,graduation_year,selection_type,created_by_user_id,public) values($1,'legacy',2028,'本選考',$2,true)",
+    [c, A],
+  );
+  await as(A);
+  expect(
+    (await db.query("select * from recruitment_templates")).rows,
+  ).toHaveLength(1);
+  await as(B);
+  expect(
+    (await db.query("select * from recruitment_templates")).rows,
+  ).toHaveLength(0);
+});
+it("isolates watchlists, reports and preferences, and transfers them with the existing code", async () => {
+  const tid = (
+    await db.query<{ id: string }>("select publish_template($1) id", [
+      JSON.stringify({
+        company_name: "watch",
+        graduation_year: 2028,
+        selection_type: "未発表",
+        url: "https://example.com",
+      }),
+    ])
+  ).rows[0].id;
+  await db.query(
+    "insert into watchlist(user_id,recruitment_template_id) values($1,$2)",
+    [A, tid],
+  );
+  await db.query(
+    "insert into template_reports(user_id,template_id,report_type,comment) values($1,$2,'URLが違う','private report')",
+    [A, tid],
+  );
+  await db.query(
+    "insert into user_preferences(user_id,auto_calendar) values($1,false)",
+    [A],
+  );
+  const code = (
+    await db.query<{ code: string }>("select issue_transfer_code() code")
+  ).rows[0].code;
+  await as(B);
+  for (const t of ["watchlist", "template_reports", "user_preferences"])
+    expect((await db.query(`select * from ${t}`)).rows).toHaveLength(0);
+  await db.query("select redeem_transfer_code($1)", [code]);
+  for (const t of ["watchlist", "template_reports", "user_preferences"])
+    expect((await db.query(`select * from ${t}`)).rows).toHaveLength(1);
+});
+it("reorders all steps atomically and preserves results", async () => {
+  const ids: string[] = [];
+  for (const title of ["ES", "一次面接"])
+    ids.push(
+      (
+        await db.query<{ id: string }>(
+          "insert into selection_steps(user_id,user_application_id,title,step_type,result) values($1,$2,$3,'その他','private') returning id",
+          [A, APP, title],
+        )
+      ).rows[0].id,
+    );
+  await db.query("select reorder_steps($1,$2::uuid[])", [
+    APP,
+    [...ids].reverse(),
+  ]);
+  const rows = (
+    await db.query<{ title: string; result: string }>(
+      "select title,result from selection_steps order by order_index",
+    )
+  ).rows;
+  expect(rows.map((s) => s.title)).toEqual(["一次面接", "ES"]);
+  expect(rows.every((s) => s.result === "private")).toBe(true);
+});
+it("seeds all 50 masters idempotently without changing existing recruitment dates or private records", async () => {
+  await db.exec("reset role");
+  const c = (
+    await db.query<{ id: string }>(
+      "insert into companies(name,industry) values('マネーフォワード','既存業界') returning id",
+    )
+  ).rows[0].id;
+  await db.query(
+    "insert into recruitment_templates(company_id,company_name,graduation_year,selection_type,position_name,application_deadline,url,source_url,public) values($1,'マネーフォワード',2028,'本選考','既存の具体的募集','2028-10-10','https://example.com','https://example.com',true)",
+    [c],
+  );
+  const seed = readFileSync("supabase/seed.sql", "utf8")
+    .replace(/^begin;$/gm, "")
+    .replace(/^commit;$/gm, "");
+  await db.exec(seed);
+  const count = async (table: string) =>
+    Number(
+      (await db.query<{ n: number }>(`select count(*) n from ${table}`)).rows[0]
+        .n,
+    );
+  const first = await count("recruitment_templates");
+  await db.exec(seed);
+  expect(await count("companies")).toBe(50);
+  expect(await count("recruitment_templates")).toBe(first);
+  expect(
+    (
+      await db.query<{ n: number }>(
+        "select count(*) n from companies where seed_key like 'career-company-%'",
+      )
+    ).rows[0].n,
+  ).toBe(50);
+  expect(
+    (
+      await db.query<{ industry: string }>(
+        "select industry from companies where id=$1",
+        [c],
+      )
+    ).rows[0].industry,
+  ).toBe("既存業界");
+  expect(
+    (
+      await db.query<{ application_deadline: string }>(
+        "select application_deadline::text from recruitment_templates where company_id=$1",
+        [c],
+      )
+    ).rows[0].application_deadline,
+  ).toBe("2028-10-10");
+  expect(
+    (
+      await db.query(
+        "select * from recruitment_templates where seed_key is not null and (application_start is not null or application_deadline is not null or verification_status<>'unverified' or application_status<>'unknown')",
+      )
+    ).rows,
+  ).toHaveLength(0);
+  expect(await count("es_questions")).toBe(1);
+  console.log(
+    "Seed verification: SELECT COUNT(*) = 50 company masters; second execution has no duplicates.",
+  );
+});
+it("handles PostgREST-style upsert when reopening a completed selection", async () => {
+  const sid = (
+    await db.query<{ id: string }>(
+      "insert into selection_steps(user_id,user_application_id,title,step_type,completed) values($1,$2,'ES','ES締切',true) returning id",
+      [A, APP],
+    )
+  ).rows[0].id;
+  await db.query(
+    "insert into selection_steps(id,user_id,user_application_id,title,step_type,state,completed) values($1,$2,$3,'ES','ES締切','完了',false) on conflict(id) do update set state=excluded.state,completed=excluded.completed",
+    [sid, A, APP],
+  );
+  expect(
+    (
+      await db.query(
+        "select state,completed from selection_steps where id=$1",
+        [sid],
+      )
+    ).rows[0],
+  ).toEqual({ state: "未着手", completed: false });
+});
+it("rejects verified metadata without a non-null official source even for admin writes", async () => {
+  await db.exec("reset role");
+  const cid = (
+    await db.query<{ id: string }>(
+      "insert into companies(name) values('source-test') returning id",
+    )
+  ).rows[0].id;
+  await expect(
+    db.query(
+      "insert into recruitment_templates(company_id,company_name,graduation_year,selection_type,source_type,verification_status,last_verified_at) values($1,'source-test',2028,'未発表','official','verified',now())",
+      [cid],
+    ),
+  ).rejects.toThrow();
+});
+it("rejects public flow entries with missing types before others can copy them", async () => {
+  await expect(
+    db.query("select publish_template($1)", [
+      JSON.stringify({
+        company_name: "invalid-flow",
+        graduation_year: 2028,
+        selection_type: "本選考",
+        url: "https://example.com",
+        public_flow: [{ title: "面接" }],
+      }),
+    ]),
+  ).rejects.toThrow();
+});
+it("does not expose a third-party source alone as an official application URL", async () => {
+  await db.exec("reset role");
+  const cid = (
+    await db.query<{ id: string }>(
+      "insert into companies(name) values('third-party-only') returning id",
+    )
+  ).rows[0].id;
+  await db.query(
+    "insert into recruitment_templates(company_id,company_name,graduation_year,selection_type,source_url,source_type,public,created_by_user_id) values($1,'third-party-only',2028,'未発表','https://example.com/news','third_party',true,$2)",
+    [cid, A],
+  );
+  await as(B);
+  expect(
+    (await db.query("select * from recruitment_templates")).rows,
+  ).toHaveLength(0);
+});
+it("transfers linked selection tasks through both ownership foreign keys", async () => {
+  const sid = (
+    await db.query<{ id: string }>(
+      "insert into selection_steps(user_id,user_application_id,title,step_type,deadline) values($1,$2,'ES','ES締切','2028-10-01') returning id",
+      [A, APP],
+    )
+  ).rows[0].id;
+  await db.query(
+    "update tasks set memo='keep task memo' where selection_step_id=$1",
+    [sid],
+  );
+  const code = (
+    await db.query<{ code: string }>("select issue_transfer_code() code")
+  ).rows[0].code;
+  await as(B);
+  expect(
+    (
+      await db.query<{ ok: boolean }>("select redeem_transfer_code($1) ok", [
+        code,
+      ])
+    ).rows[0].ok,
+  ).toBe(true);
+  expect(
+    (await db.query("select user_id,selection_step_id,memo from tasks")).rows,
+  ).toEqual([{ user_id: B, selection_step_id: sid, memo: "keep task memo" }]);
+  await db.query("update tasks set completed=true where selection_step_id=$1", [
+    sid,
+  ]);
+  expect(
+    (
+      await db.query<{ completed: boolean }>(
+        "select completed from selection_steps where id=$1",
+        [sid],
+      )
+    ).rows[0].completed,
+  ).toBe(true);
+  await as(A);
+  expect((await db.query("select * from tasks")).rows).toHaveLength(0);
 });

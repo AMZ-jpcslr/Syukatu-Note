@@ -4,7 +4,9 @@ import type { Application, EventType } from "@/lib/types";
 import { eventTypes } from "@/lib/types";
 import { publishTemplate } from "@/lib/repository";
 import { displayDate } from "@/lib/dates";
-import { useAction } from "./providers";
+import { similarTemplates } from "@/lib/templates";
+import { TemplateCopyButtons } from "./template-card";
+import { useTemplates, useAction } from "./providers";
 import { Dialog } from "./ui/dialog";
 import { Button } from "./ui/button";
 export function PublishDialog({
@@ -15,6 +17,18 @@ export function PublishDialog({
   onClose: () => void;
 }) {
   const action = useAction();
+  const { data: templates = [] } = useTemplates();
+  const similar = similarTemplates(
+    templates,
+    a.company_name,
+    a.graduation_year,
+    a.job_category,
+    a.position_name,
+    3,
+    false,
+    a.selection_type,
+  );
+  const [official, setOfficial] = useState(false);
   const [flow, setFlow] = useState<EventType[]>([]);
   return (
     <Dialog
@@ -37,6 +51,35 @@ export function PublishDialog({
         </p>
         <p className="break-all">{a.url || "募集URLなし"}</p>
       </div>
+      {!!similar.length && (
+        <div className="similar-box">
+          <strong>似た募集があります</strong>
+          {similar.map((t) => (
+            <div key={t.id}>
+              <span>
+                {t.company_name} · {t.position_name} · {t.selection_type}
+              </span>
+              <TemplateCopyButtons template={t} compact />
+            </div>
+          ))}
+        </div>
+      )}
+      <label className="inline-check my-4">
+        <input
+          type="checkbox"
+          checked={official}
+          onChange={(e) => setOfficial(e.target.checked)}
+        />
+        募集URLが企業の公式採用ページであることを確認しました
+      </label>
+      {!a.url && (
+        <p className="field-error">
+          概要の編集から公式採用URLを登録してください。
+        </p>
+      )}
+      <p className="muted text-xs">
+        投稿は「未確認」で公開されます。公式URLの入力だけでは「確認済み」にはなりません。
+      </p>
       <h4 className="my-4 text-sm font-semibold">
         公開されている選考フロー（任意）
       </h4>
@@ -71,7 +114,7 @@ export function PublishDialog({
           キャンセル
         </Button>
         <Button
-          disabled={action.busy}
+          disabled={action.busy || !a.url || !official}
           onClick={async () => {
             if (
               await action.run(

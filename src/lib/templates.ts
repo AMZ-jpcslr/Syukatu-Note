@@ -13,13 +13,16 @@ export function similarTemplates(
   position = "",
   limit = 6,
   includePrivate = false,
+  selection = "",
 ) {
   const n = normalizeName(name);
   if (!n) return [];
   return templates
     .filter((t) => includePrivate || t.public)
     .map((t) => {
-      const candidate = normalizeName(t.company_name);
+      const candidate = normalizeName(
+        [t.company_name, ...(t.aliases ?? [])].join(" "),
+      );
       let score =
         candidate === n
           ? 10
@@ -27,6 +30,7 @@ export function similarTemplates(
             ? 6
             : 0;
       if (!score) return { t, score };
+      if (selection && t.selection_type === selection) score += 2;
       if (t.graduation_year === year) score += 3;
       if (job && normalizeName(t.job_category).includes(normalizeName(job)))
         score += 2;
@@ -58,4 +62,11 @@ export function publicPayload(a: Application, publicFlow: PublicStep[]) {
       step_type: s.step_type,
     })),
   };
+}
+
+export function deadlineChanged(a: Application, t: Template) {
+  return (
+    a.recruitment_template_id === t.id &&
+    (a.copied_application_deadline ?? null) !== t.application_deadline
+  );
 }

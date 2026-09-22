@@ -1,5 +1,7 @@
 "use client";
-import { useEffect, useState } from "react";
+import { SelectionFlow } from "./selection-flow";
+import { ESSearch } from "./es-search";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -9,9 +11,7 @@ import {
   Share2,
   Trash2,
   Check,
-  CalendarDays,
   LockKeyhole,
-  ArrowDown,
 } from "lucide-react";
 import { useStore, useAction } from "./providers";
 import { ApplicationForm } from "./application-form";
@@ -23,7 +23,7 @@ import {
   removeApplication,
   removeChild,
 } from "@/lib/repository";
-import { eventsFromStore, progress, displayDate, jstTime } from "@/lib/dates";
+import { progress, displayDate, jstTime } from "@/lib/dates";
 import type { Child, ChildTable } from "@/lib/types";
 import { Button } from "./ui/button";
 import { Dialog } from "./ui/dialog";
@@ -37,12 +37,20 @@ import {
   Progress,
   StatusBadge,
 } from "./shared";
-export function CompanyDetail({ id }: { id: string }) {
+export function CompanyDetail({
+  id,
+  initialEdit = false,
+  initialTab = "概要",
+}: {
+  id: string;
+  initialEdit?: boolean;
+  initialTab?: string;
+}) {
   const { data, error, isPending, refetch } = useStore();
   const action = useAction();
   const router = useRouter();
-  const [tab, setTab] = useState("概要");
-  const [edit, setEdit] = useState(false);
+  const [tab, setTab] = useState(initialTab);
+  const [edit, setEdit] = useState(initialEdit);
   const [publish, setPublish] = useState(false);
   const [child, setChild] = useState<{ table: ChildTable; item?: Child }>();
   const [remove, setRemove] = useState<{
@@ -50,17 +58,8 @@ export function CompanyDetail({ id }: { id: string }) {
     id: string;
     title: string;
   }>();
-  const [research, setResearch] = useState("");
+  const [research, setResearch] = useState<string>();
   const a = data?.applications.find((a) => a.id === id);
-  useEffect(() => {
-    if (a) setResearch(a.research);
-  }, [a?.research, a?.id]);
-  useEffect(() => {
-    if (new URLSearchParams(window.location.search).get("edit") === "1") {
-      setEdit(true);
-      router.replace(`/companies/${id}`);
-    }
-  }, [id, router]);
   if (isPending) return <Loading />;
   if (error || !data) return <ErrorState error={error} retry={refetch} />;
   if (!a)
@@ -122,7 +121,7 @@ export function CompanyDetail({ id }: { id: string }) {
           </Button>
           <Button variant="outline" size="sm" onClick={() => setPublish(true)}>
             <Share2 size={14} />
-            募集を公開
+            他の就活生にも共有
           </Button>
         </div>
       </div>
@@ -136,15 +135,7 @@ export function CompanyDetail({ id }: { id: string }) {
         <Progress {...progress(data, id)} />
       </div>
       <div className="tabs detail-tabs">
-        {[
-          "概要",
-          "選考フロー",
-          "タスク",
-          "イベント",
-          "ES",
-          "面接メモ",
-          "企業研究",
-        ].map((t) => (
+        {["概要", "選考", "タスク", "ES", "面接", "企業研究"].map((t) => (
           <button
             className={tab === t ? "active" : ""}
             key={t}
@@ -160,6 +151,16 @@ export function CompanyDetail({ id }: { id: string }) {
             <h2 className="mb-5">募集情報</h2>
             <dl className="detail-dl">
               {[
+                ["企業名", a.company_name],
+                ["業界", a.industry || "未設定"],
+                ["志望度", a.priority],
+                ["ステータス", a.status],
+                [
+                  "最終確認日",
+                  a.last_verified_at
+                    ? displayDate(a.last_verified_at, "yyyy/M/d")
+                    : "未確認",
+                ],
                 ["募集名", a.position_name || "—"],
                 ["職種", a.job_category || "—"],
                 ["コース", a.course_name || "—"],
@@ -175,6 +176,9 @@ export function CompanyDetail({ id }: { id: string }) {
                 </div>
               ))}
             </dl>
+            <div className="mt-4">
+              <ExternalLink url={a.url} />
+            </div>
             <div className="flex gap-2 mt-5 flex-wrap">
               {a.tags.map((t) => (
                 <span className="tag" key={t}>
@@ -208,77 +212,16 @@ export function CompanyDetail({ id }: { id: string }) {
           </section>
         </div>
       )}
-      {tab === "選考フロー" && (
-        <section className="panel">
-          <div className="panel-heading">
-            <h2>選考フロー</h2>
-            <Button
-              size="sm"
-              onClick={() => setChild({ table: "selection_steps" })}
-            >
-              <Plus size={14} />
-              ステップを追加
-            </Button>
-          </div>
-          <div className="flow-list">
-            {steps.map((s, index) => (
-              <div key={s.id} className="flow-step">
-                <span className="step-number">{index + 1}</span>
-                <div className="flow-step-body">
-                  <div className="flex items-center gap-3">
-                    <button
-                      className={`task-check ${s.completed ? "checked" : ""}`}
-                      disabled={action.busy}
-                      aria-label={s.title + "の完了状態を変更"}
-                      onClick={() =>
-                        action.run(() =>
-                          saveChild("selection_steps", {
-                            ...s,
-                            completed: !s.completed,
-                          }),
-                        )
-                      }
-                    >
-                      {s.completed && <Check size={12} />}
-                    </button>
-                    <h3 className={s.completed ? "line-through muted" : ""}>
-                      {s.title}
-                    </h3>
-                    <span className="tag">{s.step_type}</span>
-                    {actions("selection_steps", s, s.title)}
-                  </div>
-                  <div className="flow-step-dates">
-                    {s.deadline && (
-                      <span>
-                        期限 <DueBadge date={s.deadline} />
-                      </span>
-                    )}
-                    {s.scheduled_at && (
-                      <span>
-                        <CalendarDays size={13} />
-                        {displayDate(s.scheduled_at)} {jstTime(s.scheduled_at)}
-                      </span>
-                    )}
-                    {s.result && <span>結果：{s.result}</span>}
-                  </div>
-                  {s.memo && (
-                    <p className="whitespace-pre-wrap muted text-sm mt-3">
-                      {s.memo}
-                    </p>
-                  )}
-                  {s.url && (
-                    <div className="mt-3">
-                      <ExternalLink url={s.url} />
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
-            {!steps.length && (
-              <Empty text="選考ステップを追加して、全体の流れを把握しましょう" />
-            )}
-          </div>
-        </section>
+      {tab === "選考" && (
+        <SelectionFlow
+          steps={steps}
+          applicationId={id}
+          onAdd={() => setChild({ table: "selection_steps" })}
+          onEdit={(s) => setChild({ table: "selection_steps", item: s })}
+          onRemove={(s) =>
+            setRemove({ table: "selection_steps", id: s.id, title: s.title })
+          }
+        />
       )}
       {tab === "タスク" && (
         <section className="panel">
@@ -331,36 +274,6 @@ export function CompanyDetail({ id }: { id: string }) {
           {!tasks.length && <Empty text="準備や提出のタスクを登録しましょう" />}
         </section>
       )}
-      {tab === "イベント" && (
-        <section className="panel">
-          <div className="panel-heading">
-            <h2>この企業の予定</h2>
-            <Button asChild size="sm" variant="outline">
-              <Link href="/calendar">カレンダーを見る</Link>
-            </Button>
-          </div>
-          {eventsFromStore(data)
-            .filter((e) => e.applicationId === id)
-            .map((e) => (
-              <div className="deadline-row" key={e.id}>
-                <CalendarDays size={18} />
-                <div>
-                  <strong>{e.title.split(" · ").slice(1).join(" · ")}</strong>
-                  <small>
-                    {e.type} · {e.completed ? "完了済み" : "予定"}
-                  </small>
-                </div>
-                <span>
-                  {displayDate(e.start, "yyyy/M/d")}
-                  {!e.allDay && " " + jstTime(e.start)}
-                </span>
-              </div>
-            ))}
-          {!eventsFromStore(data).some((e) => e.applicationId === id) && (
-            <Empty text="日付を設定した選考・タスクがここに表示されます" />
-          )}
-        </section>
-      )}
       {tab === "ES" && (
         <section className="panel">
           <div className="panel-heading">
@@ -377,6 +290,7 @@ export function CompanyDetail({ id }: { id: string }) {
             <LockKeyhole size={13} />
             回答はあなただけに表示されます
           </div>
+          <ESSearch store={data} />
           {es.map((q) => (
             <article className="note-card" key={q.id}>
               <div className="flex gap-3 items-start">
@@ -395,6 +309,8 @@ export function CompanyDetail({ id }: { id: string }) {
                 }
               >
                 {Array.from(q.answer).length} / {q.max_length}文字
+                {q.submitted_at &&
+                  ` · 提出 ${displayDate(q.submitted_at, "yyyy/M/d")} ${jstTime(q.submitted_at)}`}
               </small>
             </article>
           ))}
@@ -403,7 +319,7 @@ export function CompanyDetail({ id }: { id: string }) {
           )}
         </section>
       )}
-      {tab === "面接メモ" && (
+      {tab === "面接" && (
         <section className="panel">
           <div className="panel-heading">
             <h2>面接の記録</h2>
@@ -430,9 +346,27 @@ export function CompanyDetail({ id }: { id: string }) {
                 {displayDate(i.scheduled_at, "yyyy/M/d")}{" "}
                 {jstTime(i.scheduled_at)} · 面接官：{i.interviewer || "未記入"}
               </p>
+              {i.location_or_url && (
+                <p className="text-sm whitespace-pre-wrap">
+                  場所・URL：{i.location_or_url}
+                </p>
+              )}
+              {(i.qa_pairs?.length
+                ? i.qa_pairs
+                : [{ question: i.questions, answer: i.answers }]
+              ).map((pair, index) => (
+                <div key={index} className="mt-4">
+                  <h4 className="text-xs muted">質問 {index + 1}</h4>
+                  <p className="whitespace-pre-wrap">
+                    {pair.question || "未記入"}
+                  </p>
+                  <h4 className="text-xs muted mt-2">自分の回答</h4>
+                  <p className="whitespace-pre-wrap">
+                    {pair.answer || "未記入"}
+                  </p>
+                </div>
+              ))}
               {[
-                ["質問", i.questions],
-                ["自分の回答", i.answers],
                 ["振り返り", i.reflection],
                 ["結果", i.result],
               ].map(([k, v]) => (
@@ -459,14 +393,16 @@ export function CompanyDetail({ id }: { id: string }) {
             rows={16}
             maxLength={50000}
             className="w-full"
-            value={research}
+            value={research ?? a.research}
             onChange={(e) => setResearch(e.target.value)}
           />
           <div className="form-footer">
             <Button
               disabled={action.busy}
               onClick={() =>
-                action.run(() => saveApplication({ ...a, research }))
+                action.run(() =>
+                  saveApplication({ ...a, research: research ?? a.research }),
+                )
               }
             >
               ノートを保存
@@ -489,7 +425,10 @@ export function CompanyDetail({ id }: { id: string }) {
       <ApplicationForm
         open={edit}
         application={a}
-        onClose={() => setEdit(false)}
+        onClose={() => {
+          setEdit(false);
+          router.replace(`/companies/${id}`);
+        }}
       />
       {publish && (
         <PublishDialog application={a} onClose={() => setPublish(false)} />
@@ -507,7 +446,7 @@ export function CompanyDetail({ id }: { id: string }) {
         open={!!remove}
         onOpenChange={(v) => !v && setRemove(undefined)}
         title="削除しますか？"
-        description={`「${remove?.title ?? ""}」を削除します。${remove?.table ? "" : "関連する選考・タスク・ES・面接記録も削除されます。"}この操作は取り消せません。`}
+        description={`「${remove?.title ?? ""}」を削除します。${remove?.table === "selection_steps" ? "関連する自動作成タスクも削除されます。" : remove?.table ? "" : "関連する選考・タスク・ES・面接記録も削除されます。"}この操作は取り消せません。`}
       >
         <div className="form-footer">
           <Button variant="outline" onClick={() => setRemove(undefined)}>

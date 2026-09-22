@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useSyncExternalStore, useState } from "react";
 import { useTheme } from "next-themes";
 import {
   Download,
@@ -9,14 +9,18 @@ import {
   Bell,
   ShieldCheck,
   Monitor,
-  Check,
   Database,
   Smartphone,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { useStore, useAction } from "./providers";
-import { issueTransfer, redeemTransfer, importBundle } from "@/lib/repository";
+import {
+  issueTransfer,
+  redeemTransfer,
+  importBundle,
+  savePreferences,
+} from "@/lib/repository";
 import {
   isDemo,
   isConfigured,
@@ -25,31 +29,40 @@ import {
 } from "@/lib/supabase";
 import {
   parseCsv,
+  parseCsvFiles,
+  exportCsvFiles,
   exportCsv,
   downloadFile,
   type ImportBundle,
 } from "@/lib/csv";
+import { defaultPreferences } from "@/lib/types";
 import { todayKey, eventsFromStore, reminders } from "@/lib/dates";
 import { PageHeading } from "./shared";
 import { Button } from "./ui/button";
 import { Dialog } from "./ui/dialog";
+const subscribeMounted = () => () => {};
 export function Settings() {
   const { data } = useStore();
   const action = useAction();
   const q = useQueryClient();
   const { theme, setTheme } = useTheme();
-  const [code, setCode] = useState("");
+  const [codeOverride, setCode] = useState<string>();
   const [incoming, setIncoming] = useState("");
   const [restoring, setRestoring] = useState(false);
   const [preview, setPreview] = useState<ImportBundle>();
-  const [permission, setPermission] = useState("default");
+  const [permissionOverride, setPermission] = useState<string>();
   const [importError, setImportError] = useState("");
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => {
-    setMounted(true);
-    setCode(localStorage.getItem("shukatsu-transfer-code") ?? "");
-    if ("Notification" in window) setPermission(Notification.permission);
-  }, []);
+  const mounted = useSyncExternalStore(
+    subscribeMounted,
+    () => true,
+    () => false,
+  );
+  const code =
+    codeOverride ??
+    (mounted ? (localStorage.getItem("shukatsu-transfer-code") ?? "") : "");
+  const permission =
+    permissionOverride ??
+    (mounted && "Notification" in window ? Notification.permission : "default");
   async function notify() {
     if (!("Notification" in window)) {
       toast.error("このブラウザは通知に対応していません。");
@@ -68,6 +81,30 @@ export function Settings() {
           : "直近の通知はありません。",
         icon: "/icon.svg",
       });
+    }
+  }
+  async function uploadFiles(files: FileList | null) {
+    if (!files?.length) return;
+    if (files.length === 1 && files[0].name !== "applications.csv") {
+      await upload(files[0]);
+      return;
+    }
+    setImportError("");
+    if (Array.from(files).reduce((n, f) => n + f.size, 0) > 5 * 1024 * 1024) {
+      setImportError("CSV合計は5MB以下にしてください。");
+      return;
+    }
+    try {
+      const contents = Object.fromEntries(
+        await Promise.all(
+          Array.from(files).map(async (f) => [f.name, await f.text()]),
+        ),
+      );
+      setPreview(parseCsvFiles(contents, await initializeUser()));
+    } catch (e) {
+      setImportError(
+        e instanceof Error ? e.message : "CSVを読み込めませんでした",
+      );
     }
   }
   async function upload(file?: File) {
@@ -93,6 +130,35 @@ export function Settings() {
         description="大切な記録を、安全に持ち歩こう。"
       />
       <div className="settings-grid">
+        <section className="panel settings-panel">
+          <h2>選考の自動連携</h2>
+          <p>
+            新規・編集した選考ステップを連携します。OFFにしても既存タスクは保持されます。
+          </p>
+          {(
+            [
+              ["auto_create_tasks", "選考ステップからタスクを自動作成"],
+              ["auto_calendar", "選考ステップをカレンダーへ自動追加"],
+            ] as const
+          ).map(([key, label]) => (
+            <label className="inline-check my-4" key={key}>
+              <input
+                type="checkbox"
+                disabled={!data || action.busy}
+                checked={(data?.preferences ?? defaultPreferences)[key]}
+                onChange={(e) =>
+                  action.run(() =>
+                    savePreferences({
+                      ...(data?.preferences ?? defaultPreferences),
+                      [key]: e.target.checked,
+                    }),
+                  )
+                }
+              />
+              {label}
+            </label>
+          ))}
+        </section>
         <section className="panel settings-panel">
           <h2>
             <ShieldCheck size={19} />
@@ -236,11 +302,32 @@ export function Settings() {
         <section className="panel settings-panel span-2">
           <h2>
             <Database size={19} />
-            CSVインポート・エクスポート
+            データをエクスポート・インポート
           </h2>
           <p>
             企業・募集・選考フロー・タスクをCSVでバックアップできます。CSVには個人メモや選考結果が含まれます。ES・面接記録・企業研究ノートを含む完全な移行には、引き継ぎコードを利用してください。
           </p>
+          <p className="text-xs muted">
+            分割CSVは各ボタンから保存できます。復元時は3ファイルをまとめて選択してください。
+          </p>
+          <div className="flex gap-2 flex-wrap mb-4">
+            {["applications.csv", "tasks.csv", "selection_steps.csv"].map(
+              (name) => (
+                <Button
+                  key={name}
+                  size="sm"
+                  variant="outline"
+                  disabled={!data}
+                  onClick={() =>
+                    data && downloadFile(exportCsvFiles(data)[name], name)
+                  }
+                >
+                  <Download size={14} />
+                  {name}
+                </Button>
+              ),
+            )}
+          </div>
           <div className="flex gap-3 flex-wrap">
             <Button
               variant="outline"
@@ -261,8 +348,9 @@ export function Settings() {
                 aria-label="CSVファイルを選択"
                 type="file"
                 accept=".csv,text/csv"
+                multiple
                 onChange={(e) => {
-                  upload(e.target.files?.[0]);
+                  uploadFiles(e.target.files);
                   e.target.value = "";
                 }}
               />

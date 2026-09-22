@@ -35,7 +35,11 @@ export function useStore() {
   });
 }
 export function useTemplates() {
-  return useQuery({ queryKey: ["templates"], queryFn: loadTemplates });
+  return useQuery({
+    queryKey: ["templates"],
+    queryFn: loadTemplates,
+    refetchInterval: 60000,
+  });
 }
 export function useAction() {
   const q = useQueryClient();

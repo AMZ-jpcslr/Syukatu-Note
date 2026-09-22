@@ -6,7 +6,7 @@ export default defineConfig({
   timeout: 120000,
   expect: { timeout: 15000 },
   use: {
-    baseURL: "http://localhost:3000",
+    baseURL: "http://localhost:3100",
     headless: true,
     actionTimeout: 15000,
     channel: process.env.PLAYWRIGHT_CHANNEL ?? "msedge",
@@ -21,9 +21,9 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: "pnpm dev",
-    url: "http://localhost:3000",
-    reuseExistingServer: !process.env.CI,
+    command: "node node_modules/next/dist/bin/next dev --port 3100",
+    url: "http://localhost:3100",
+    reuseExistingServer: false,
     env: { NEXT_PUBLIC_DEMO_MODE: "true" },
     timeout: 120000,
   },

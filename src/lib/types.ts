@@ -3,6 +3,9 @@ export const selectionTypes = [
   "早期選考",
   "インターン",
   "採用直結インターン",
+  "選考優遇インターン",
+  "ワークショップ",
+  "未発表",
   "説明会",
   "その他",
 ] as const;
@@ -15,7 +18,46 @@ export const statuses = [
   "不合格",
   "辞退",
 ] as const;
-export const priorities = ["S", "A", "B", "C"] as const;
+export const priorities = ["S", "A", "B", "C", "未設定"] as const;
+export const stepStatuses = [
+  "未着手",
+  "進行中",
+  "完了",
+  "合格",
+  "不合格",
+  "免除",
+  "辞退",
+] as const;
+export const jobCategories = [
+  "Product",
+  "Product Manager",
+  "Product Planner",
+  "Business",
+  "Business Development",
+  "事業企画",
+  "DX",
+  "AI",
+  "Data",
+  "Software Engineer",
+  "ML Engineer",
+  "Security",
+  "Research",
+  "Consultant",
+  "Trading",
+  "Finance",
+  "Marketing",
+] as const;
+export const applicationStatusLabels = {
+  open: "募集中",
+  upcoming: "今後公開予定",
+  closed: "募集終了",
+  unknown: "要確認",
+};
+export const verificationLabels = {
+  verified: "確認済み",
+  unverified: "未確認",
+  outdated: "情報が古い可能性",
+};
 export const eventTypes = [
   "応募開始",
   "応募締切",
@@ -31,6 +73,8 @@ export const eventTypes = [
 ] as const;
 export type EventType = (typeof eventTypes)[number];
 export interface Application {
+  copied_application_deadline?: string | null;
+  last_verified_at?: string | null;
   id: string;
   user_id: string;
   recruitment_template_id: string | null;
@@ -54,6 +98,7 @@ export interface Application {
   created_at: string;
 }
 export interface Step {
+  state?: (typeof stepStatuses)[number];
   id: string;
   user_id: string;
   user_application_id: string;
@@ -68,6 +113,7 @@ export interface Step {
   order_index: number;
 }
 export interface Task {
+  selection_step_id?: string | null;
   id: string;
   user_id: string;
   user_application_id: string;
@@ -85,9 +131,12 @@ export interface ESQuestion {
   question: string;
   max_length: number;
   answer: string;
-  status: "下書き" | "完成" | "提出済み";
+  status: "未着手" | "下書き" | "完成" | "提出済み";
+  submitted_at?: string | null;
 }
 export interface Interview {
+  location_or_url?: string;
+  qa_pairs?: { question: string; answer: string }[];
   id: string;
   user_id: string;
   user_application_id: string;
@@ -105,6 +154,16 @@ export interface PublicStep {
   step_type: EventType;
 }
 export interface Template {
+  industry?: string;
+  tags?: string[];
+  aliases?: string[];
+  source_url?: string | null;
+  source_type?:
+    "official" | "company_mypage" | "third_party" | "user_submitted";
+  last_verified_at?: string | null;
+  verification_status?: "verified" | "unverified" | "outdated";
+  application_status?: "open" | "upcoming" | "closed" | "unknown";
+  notes_public?: string;
   id: string;
   company_id: string;
   company_name: string;
@@ -121,12 +180,28 @@ export interface Template {
   created_at: string;
 }
 export interface Store {
+  preferences?: Preferences;
+  watchlist?: WatchlistItem[];
   applications: Application[];
   steps: Step[];
   tasks: Task[];
   es: ESQuestion[];
   interviews: Interview[];
 }
+export interface Preferences {
+  auto_create_tasks: boolean;
+  auto_calendar: boolean;
+}
+export interface WatchlistItem {
+  id: string;
+  user_id: string;
+  recruitment_template_id: string;
+  created_at: string;
+}
+export const defaultPreferences: Preferences = {
+  auto_create_tasks: true,
+  auto_calendar: true,
+};
 export interface CalendarEvent {
   id: string;
   applicationId: string;

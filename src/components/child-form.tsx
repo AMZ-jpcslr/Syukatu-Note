@@ -9,7 +9,8 @@ import type {
   ESQuestion,
   Interview,
 } from "@/lib/types";
-import { eventTypes } from "@/lib/types";
+import { isStepDone, characterCount } from "@/lib/workflow";
+import { eventTypes, stepStatuses } from "@/lib/types";
 import { toInstant, toLocalInput } from "@/lib/dates";
 import { safeUrl } from "@/lib/validation";
 import { saveChild } from "@/lib/repository";
@@ -35,6 +36,17 @@ export function ChildForm({
   const action = useAction();
   const [answer, setAnswer] = useState((item as ESQuestion)?.answer ?? "");
   const [max, setMax] = useState((item as ESQuestion)?.max_length ?? 400);
+  const interview = item as Interview | undefined;
+  const [pairs, setPairs] = useState(
+    interview?.qa_pairs?.length
+      ? interview.qa_pairs
+      : [
+          {
+            question: interview?.questions ?? "",
+            answer: interview?.answers ?? "",
+          },
+        ],
+  );
   const [validation, setValidation] = useState("");
   const value = (key: string): string =>
     item && key in item
@@ -63,7 +75,8 @@ export function ChildForm({
           step_type: get("step_type") as Step["step_type"],
           deadline: get("deadline") || null,
           scheduled_at: toInstant(get("scheduled_at")),
-          completed: (item as Step)?.completed ?? false,
+          completed: isStepDone(get("state")),
+          state: get("state") as Step["state"],
           result: get("result"),
           memo: get("memo"),
           url: get("url"),
@@ -72,6 +85,7 @@ export function ChildForm({
       else if (table === "tasks")
         row = {
           ...base,
+          selection_step_id: (item as Task)?.selection_step_id ?? null,
           title: get("title"),
           task_type: get("task_type"),
           due_date: get("due_date") || null,
@@ -84,8 +98,9 @@ export function ChildForm({
           ...base,
           question: get("question"),
           max_length: Number(get("max_length")),
-          answer: get("answer"),
+          answer,
           status: get("status") as ESQuestion["status"],
+          submitted_at: toInstant(get("submitted_at")),
         } satisfies ESQuestion;
       else
         row = {
@@ -94,8 +109,10 @@ export function ChildForm({
           stage: get("stage"),
           format: get("format") as Interview["format"],
           interviewer: get("interviewer"),
-          questions: get("questions"),
-          answers: get("answers"),
+          location_or_url: get("location_or_url"),
+          qa_pairs: pairs,
+          questions: pairs.map((p) => p.question).join("\n\n"),
+          answers: pairs.map((p) => p.answer).join("\n\n"),
           reflection: get("reflection"),
           result: get("result"),
         } satisfies Interview;
@@ -165,6 +182,20 @@ export function ChildForm({
                   </select>
                 </label>
                 <label>
+                  状態
+                  <select
+                    name="state"
+                    defaultValue={
+                      value("state") ||
+                      ((item as Step)?.completed ? "完了" : "未着手")
+                    }
+                  >
+                    {stepStatuses.map((s) => (
+                      <option key={s}>{s}</option>
+                    ))}
+                  </select>
+                </label>
+                <label>
                   表示順
                   <input
                     name="order_index"
@@ -210,6 +241,11 @@ export function ChildForm({
                     name="task_type"
                     defaultValue={value("task_type") || "ESを書く"}
                   >
+                    {(item as Task)?.selection_step_id && (
+                      <option value={value("task_type")}>
+                        {value("task_type")}（選考連携）
+                      </option>
+                    )}
                     {[
                       "ESを書く",
                       "ES提出",
@@ -283,10 +319,22 @@ export function ChildForm({
             <label>
               ステータス
               <select name="status" defaultValue={value("status") || "下書き"}>
-                {["下書き", "完成", "提出済み"].map((s) => (
+                {["未着手", "下書き", "完成", "提出済み"].map((s) => (
                   <option key={s}>{s}</option>
                 ))}
               </select>
+            </label>
+            <label className="span-2">
+              提出日時（日本時間・任意）
+              <input
+                type="datetime-local"
+                name="submitted_at"
+                defaultValue={
+                  value("submitted_at")
+                    ? toLocalInput(value("submitted_at"))
+                    : ""
+                }
+              />
             </label>
             <label className="span-2">
               回答
@@ -301,13 +349,13 @@ export function ChildForm({
               />
               <small
                 id="answer-count"
+                style={{ textAlign: "right", display: "block" }}
                 className={
-                  Array.from(answer).length > max ? "field-error" : "muted"
+                  characterCount(answer) > max ? "field-error" : "muted"
                 }
               >
-                {Array.from(answer).length} / {max} 文字
-                {Array.from(answer).length > max &&
-                  "（文字数制限を超えています）"}
+                {characterCount(answer)} / {max} 文字
+                {characterCount(answer) > max && "（文字数制限を超えています）"}
               </small>
             </label>
           </>
@@ -350,11 +398,79 @@ export function ChildForm({
               面接官
               <input name="interviewer" defaultValue={value("interviewer")} />
             </label>
-            {[
-              ["questions", "質問"],
-              ["answers", "自分の回答"],
-              ["reflection", "振り返り"],
-            ].map(([k, l]) => (
+            <label className="span-2">
+              場所・面接URL
+              <input
+                name="location_or_url"
+                maxLength={2000}
+                defaultValue={value("location_or_url")}
+              />
+            </label>
+            <div className="span-2 qa-list">
+              {pairs.map((pair, index) => (
+                <fieldset className="panel p-4 mb-3" key={index}>
+                  <legend className="text-xs muted">質問 {index + 1}</legend>
+                  <label>
+                    質問
+                    <textarea
+                      aria-label={index === 0 ? "質問" : `質問 ${index + 1}`}
+                      maxLength={20000}
+                      value={pair.question}
+                      onChange={(e) =>
+                        setPairs(
+                          pairs.map((p, i) =>
+                            i === index
+                              ? { ...p, question: e.target.value }
+                              : p,
+                          ),
+                        )
+                      }
+                    />
+                  </label>
+                  <label>
+                    自分の回答
+                    <textarea
+                      aria-label={
+                        index === 0 ? "自分の回答" : `自分の回答 ${index + 1}`
+                      }
+                      maxLength={20000}
+                      rows={4}
+                      value={pair.answer}
+                      onChange={(e) =>
+                        setPairs(
+                          pairs.map((p, i) =>
+                            i === index ? { ...p, answer: e.target.value } : p,
+                          ),
+                        )
+                      }
+                    />
+                  </label>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    disabled={pairs.length === 1}
+                    onClick={() =>
+                      setPairs(pairs.filter((_, i) => i !== index))
+                    }
+                  >
+                    質問 {index + 1}を削除
+                  </Button>
+                </fieldset>
+              ))}
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                disabled={pairs.length >= 50}
+                onClick={() =>
+                  setPairs([...pairs, { question: "", answer: "" }])
+                }
+              >
+                質問と回答を追加
+              </Button>
+            </div>
+            {[["reflection", "振り返り"]].map(([k, l]) => (
               <label className="span-2" key={k}>
                 {l}
                 <textarea

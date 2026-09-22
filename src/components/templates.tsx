@@ -1,22 +1,35 @@
 "use client";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { Search, Copy, ArrowUpRight, Library, EyeOff } from "lucide-react";
-import { useTemplates, useAction } from "./providers";
-import { copyTemplate, setTemplatePublic } from "@/lib/repository";
+import { useState, useDeferredValue, useRef } from "react";
+import Link from "next/link";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Copy } from "lucide-react";
+import { toast } from "sonner";
+import { useTemplates, useAction, useStore } from "./providers";
+import { setTemplatePublic, copyTemplate, loadStore } from "@/lib/repository";
 import { similarTemplates } from "@/lib/templates";
-import { selectionTypes, type Template } from "@/lib/types";
-import { useQuery } from "@tanstack/react-query";
+import { selectionTypes, jobCategories } from "@/lib/types";
 import { initializeUser } from "@/lib/supabase";
 import { Button } from "./ui/button";
-import {
-  CompanyMark,
-  DueBadge,
-  Empty,
-  ErrorState,
-  Loading,
-  PageHeading,
-} from "./shared";
+import { TemplateCard } from "./template-card";
+import { Empty, ErrorState, Loading, PageHeading } from "./shared";
+export function CompanyTabs({ active }: { active: "companies" | "templates" }) {
+  return (
+    <nav className="tabs company-tabs mb-5" aria-label="企業の表示">
+      <Link
+        className={active === "companies" ? "active" : ""}
+        href="/companies"
+      >
+        自分の企業
+      </Link>
+      <Link
+        className={active === "templates" ? "active" : ""}
+        href="/templates"
+      >
+        募集を探す
+      </Link>
+    </nav>
+  );
+}
 export function Templates() {
   const { data, error, isPending, refetch } = useTemplates();
   const { data: user } = useQuery({
@@ -24,51 +37,95 @@ export function Templates() {
     queryFn: initializeUser,
   });
   const action = useAction();
-  const router = useRouter();
+  const store = useStore();
+  const queryClient = useQueryClient();
+  const copying = useRef(false);
+  const [bulkBusy, setBulkBusy] = useState(false);
+  const [bulkStatus, setBulkStatus] = useState("");
   const [query, setQuery] = useState("");
+  const deferred = useDeferredValue(query);
   const [year, setYear] = useState("");
   const [selection, setSelection] = useState("");
+  const [industry, setIndustry] = useState("");
+  const [job, setJob] = useState("");
+  const [openOnly, setOpenOnly] = useState(false);
   const [mine, setMine] = useState(false);
   if (isPending) return <Loading />;
   if (error || !data) return <ErrorState error={error} retry={refetch} />;
   const visible = data.filter((t) =>
-    mine ? t.created_by_user_id === user : t.public,
+    mine ? t.created_by_user_id === user : t.public && !!t.url,
   );
   const items = (
-    query
-      ? similarTemplates(visible, query, undefined, "", "", Infinity, mine)
+    deferred
+      ? similarTemplates(visible, deferred, undefined, "", "", Infinity, mine)
       : visible
   ).filter(
     (t) =>
       (!year || t.graduation_year === Number(year)) &&
-      (!selection || t.selection_type === selection),
+      (!selection || t.selection_type === selection) &&
+      (!industry || t.industry === industry) &&
+      (!job ||
+        [t.job_category, ...(t.tags ?? [])].some((v) =>
+          v.toLowerCase().includes(job.toLowerCase()),
+        )) &&
+      (!openOnly || t.application_status === "open"),
   );
-  async function copy(t: Template, edit: boolean) {
-    await action.run(async () => {
-      const id = await copyTemplate(t);
-      router.push(`/companies/${id}${edit ? "?edit=1" : ""}`);
-    }, "募集を引用しました");
+  const copiedIds = new Set(
+    store.data?.applications.map((a) => a.recruitment_template_id),
+  );
+  const remaining = items.filter(
+    (t) => t.public && !!t.url && !copiedIds.has(t.id),
+  );
+  async function copyAll() {
+    if (copying.current) return;
+    copying.current = true;
+    setBulkBusy(true);
+    setBulkStatus("引用済みの募集を確認しています…");
+    let added = 0;
+    try {
+      // Recheck persisted copies so retrying a partial batch skips successes.
+      const latest = await loadStore();
+      const existing = new Set(
+        latest.applications.map((a) => a.recruitment_template_id),
+      );
+      const targets = items.filter(
+        (t) => t.public && !!t.url && !existing.has(t.id),
+      );
+      for (const t of targets) {
+        setBulkStatus(`${added} / ${targets.length} 件を引用中…`);
+        await copyTemplate(t);
+        added += 1;
+      }
+      const message = added
+        ? `${added}件を応募予定に引用しました。志望度は「自分の企業」から設定できます。`
+        : "表示中の募集はすべて引用済みです。";
+      setBulkStatus(message);
+      toast.success(message);
+    } catch {
+      const message = `${added}件を引用しました。処理を中断しました。通信状況と募集の公開状態を確認して再実行してください。引用済みの募集はスキップします。`;
+      setBulkStatus(message);
+      toast.error(message);
+    } finally {
+      await queryClient.invalidateQueries({ queryKey: ["store"] });
+      setBulkBusy(false);
+      copying.current = false;
+    }
   }
   return (
     <>
       <PageHeading
         eyebrow="SHARED KNOWLEDGE"
-        title="みんなの募集"
-        description="募集情報を見つけて、自分の手帳に。"
-      >
-        <span className="tag">
-          <Library size={13} />
-          公開テンプレート
-        </span>
-      </PageHeading>
+        title="募集を探す"
+        description="公式情報を確認して、次の応募を自分の手帳へ。"
+      />
+      <CompanyTabs active="templates" />
       <div className="templates-intro">
         <div>
           <h2>情報を共有して、準備に時間を。</h2>
           <p>
-            引用した情報は自分用に編集できます。元の募集が変わっても、あなたの記録は変わりません。
+            公開情報のコピーは自分専用。元の情報が更新されても、自動では変更されません。
           </p>
         </div>
-        <Copy size={36} strokeWidth={1} />
       </div>
       <div className="panel mb-6">
         <div className="tabs">
@@ -85,16 +142,13 @@ export function Templates() {
             自分の投稿
           </button>
         </div>
-        <div className="list-toolbar">
-          <div className="search-input">
-            <Search size={17} />
-            <input
-              aria-label="公開募集を検索"
-              placeholder="企業名で検索（例：楽天）"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-            />
-          </div>
+        <div className="list-toolbar template-filters">
+          <input
+            aria-label="公開募集を検索"
+            placeholder="企業名（例：楽天・Rakuten）"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
           <select
             aria-label="卒年度で絞り込み"
             value={year}
@@ -110,103 +164,111 @@ export function Templates() {
               ))}
           </select>
           <select
+            aria-label="業界で絞り込み"
+            value={industry}
+            onChange={(e) => setIndustry(e.target.value)}
+          >
+            <option value="">すべての業界</option>
+            {[...new Set(data.map((t) => t.industry).filter(Boolean))]
+              .sort()
+              .map((i) => (
+                <option key={i}>{i}</option>
+              ))}
+          </select>
+          <input
+            aria-label="職種で絞り込み"
+            placeholder="職種・カテゴリー"
+            list="job-categories"
+            value={job}
+            onChange={(e) => setJob(e.target.value)}
+          />
+          <datalist id="job-categories">
+            {jobCategories.map((j) => (
+              <option key={j} value={j} />
+            ))}
+          </datalist>
+          <select
             aria-label="選考区分で絞り込み"
             value={selection}
             onChange={(e) => setSelection(e.target.value)}
           >
-            <option value="">すべての選考区分</option>
-            {selectionTypes.map((t) => (
-              <option key={t}>{t}</option>
+            <option value="">すべての募集種別</option>
+            {selectionTypes.map((s) => (
+              <option key={s}>{s}</option>
             ))}
           </select>
+          <label className="inline-check">
+            <input
+              type="checkbox"
+              checked={openOnly}
+              onChange={(e) => setOpenOnly(e.target.checked)}
+            />
+            募集中のみ
+          </label>
+        </div>
+        <div className="filter-bar flex-wrap">
+          {["本選考", "インターン", "採用直結インターン", "早期選考"].map(
+            (s) => (
+              <Button
+                key={s}
+                size="sm"
+                variant={selection === s ? "default" : "outline"}
+                aria-pressed={selection === s}
+                onClick={() => setSelection(selection === s ? "" : s)}
+              >
+                {s === "採用直結インターン" ? "採用直結" : s}のみ
+              </Button>
+            ),
+          )}
         </div>
       </div>
+      <div className="flex items-center justify-between gap-3 flex-wrap mb-4">
+        <p className="muted text-xs">
+          表示中 {items.length} 件 · 未引用 {remaining.length} 件
+        </p>
+        <Button
+          disabled={
+            bulkBusy ||
+            !store.data ||
+            !!store.error ||
+            !remaining.length ||
+            query !== deferred
+          }
+          onClick={copyAll}
+        >
+          <Copy size={14} />
+          {bulkBusy ? "引用中…" : "すべて引用"}
+        </Button>
+      </div>
+      <p className="muted text-xs mb-3">
+        「すべて引用」は表示中の未引用の募集を応募予定に追加します。引用済みの募集はスキップします。
+      </p>
+      <p role="status" aria-live="polite" className="text-sm mb-4">
+        {bulkStatus}
+      </p>
       <p className="muted text-xs mb-4">
-        {items.length} 件の募集 ·
-        投稿情報は必ず公式募集ページで確認してください。サンプル募集は日程未設定です。
+        {items.length} 件 ·
+        監視テンプレートのタグは企業分野です。2028卒の職種募集を保証するものではありません。応募前に公式サイトを確認してください。
       </p>
       <div className="template-grid">
         {items.map((t) => (
-          <article className="panel template-card" key={t.id}>
-            <div className="flex justify-between items-center">
-              <CompanyMark name={t.company_name} />
-              <span className="tag">{t.graduation_year}卒</span>
-            </div>
-            <h2>{t.company_name}</h2>
-            <p>{t.position_name || t.job_category}</p>
-            <div className="flex gap-2 my-4">
-              <span className="tag">{t.selection_type}</span>
-              {!t.public && (
-                <span className="tag">
-                  <EyeOff size={12} />
-                  非公開
-                </span>
-              )}
-            </div>
-            <div className="template-dates">
-              <span>応募締切</span>
-              <DueBadge date={t.application_deadline} />
-            </div>
-            {t.public_flow.length > 0 && (
-              <div className="template-flow">
-                {t.public_flow.map((s, i) => (
-                  <span key={i}>
-                    {i > 0 && " → "}
-                    {s.title}
-                  </span>
-                ))}
-              </div>
-            )}
-            {t.url && (
-              <a
-                className="text-link text-xs mt-4"
-                href={t.url}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                募集ページを開く
-                <ArrowUpRight size={12} />
-              </a>
-            )}
-            <div className="template-actions">
+          <TemplateCard template={t} key={t.id} copyDisabled={bulkBusy}>
+            {t.created_by_user_id === user && (
               <Button
                 size="sm"
-                disabled={action.busy || !t.public}
-                onClick={() => copy(t, false)}
+                variant="ghost"
+                disabled={action.busy || (!t.public && !t.url)}
+                onClick={() =>
+                  action.run(() => setTemplatePublic(t.id, !t.public))
+                }
               >
-                <Copy size={14} />
-                引用
+                {t.public ? "非公開にする" : "公開する"}
               </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                disabled={action.busy || !t.public}
-                onClick={() => copy(t, true)}
-              >
-                引用して編集
-              </Button>
-              {t.created_by_user_id === user && (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  disabled={action.busy}
-                  onClick={() =>
-                    action.run(
-                      () => setTemplatePublic(t.id, !t.public),
-                      t.public ? "非公開にしました" : "公開しました",
-                    )
-                  }
-                >
-                  {t.public ? "非公開にする" : "公開する"}
-                </Button>
-              )}
-            </div>
-          </article>
+            )}
+          </TemplateCard>
         ))}
       </div>
-      {items.length === 0 && (
-        <Empty text="一致する募集はありません。企業詳細の「募集を公開」から投稿できます。" />
-      )}
+      {!items.length && <Empty text="条件に一致する募集はありません" />}
     </>
   );
 }

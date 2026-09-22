@@ -8,6 +8,7 @@ import {
   List,
   SlidersHorizontal,
 } from "lucide-react";
+import { CompanyTabs } from "./templates";
 import { useStore } from "./providers";
 import { ApplicationForm } from "./application-form";
 import { Button } from "./ui/button";
@@ -81,6 +82,7 @@ export function Companies() {
           企業を追加
         </Button>
       </PageHeading>
+      <CompanyTabs active="companies" />
       <div className="panel">
         <div className="list-toolbar">
           <div className="search-input">

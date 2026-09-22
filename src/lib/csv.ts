@@ -3,6 +3,7 @@ import { z } from "zod";
 import { applicationSchema, safeUrl } from "./validation";
 import {
   eventTypes,
+  stepStatuses,
   type Application,
   type Store,
   type Step,
@@ -10,6 +11,8 @@ import {
 } from "./types";
 const nullableDate = z.union([z.iso.date(), z.null()]);
 const stepSchema = z.object({
+  backup_key: z.string().optional(),
+  state: z.enum(stepStatuses).optional(),
   title: z.string().trim().min(1).max(300),
   step_type: z.enum(eventTypes),
   deadline: nullableDate,
@@ -21,6 +24,7 @@ const stepSchema = z.object({
   order_index: z.number().int().min(0),
 });
 const taskSchema = z.object({
+  source_step_backup_key: z.string().nullable().optional(),
   title: z.string().trim().min(1).max(300),
   task_type: z.string().max(100),
   due_date: nullableDate,
@@ -74,6 +78,8 @@ export function exportCsv(store: Store) {
         .filter((s) => s.user_application_id === a.id)
         .map(
           ({
+            id: backup_key,
+            state,
             title,
             step_type,
             deadline,
@@ -84,6 +90,8 @@ export function exportCsv(store: Store) {
             url,
             order_index,
           }) => ({
+            backup_key,
+            state,
             title,
             step_type,
             deadline,
@@ -99,14 +107,25 @@ export function exportCsv(store: Store) {
     tasks: JSON.stringify(
       store.tasks
         .filter((t) => t.user_application_id === a.id)
-        .map(({ title, task_type, due_date, completed, memo, url }) => ({
-          title,
-          task_type,
-          due_date,
-          completed,
-          memo,
-          url,
-        })),
+        .map(
+          ({
+            selection_step_id,
+            title,
+            task_type,
+            due_date,
+            completed,
+            memo,
+            url,
+          }) => ({
+            source_step_backup_key: selection_step_id ?? null,
+            title,
+            task_type,
+            due_date,
+            completed,
+            memo,
+            url,
+          }),
+        ),
     ),
   }));
   return (
@@ -159,12 +178,25 @@ export function parseCsv(text: string, user: string): ImportBundle {
         .array(taskSchema)
         .max(100)
         .parse(JSON.parse(row.tasks || "[]"));
-      bundle.steps.push(
-        ...steps.map((s) => ({ ...s, ...owner, id: crypto.randomUUID() })),
-      );
-      bundle.tasks.push(
-        ...tasks.map((t) => ({ ...t, ...owner, id: crypto.randomUUID() })),
-      );
+      const stepIds = new Map<string, string>();
+      for (const { backup_key, ...s } of steps) {
+        const sid = crypto.randomUUID();
+        if (backup_key) stepIds.set(backup_key, sid);
+        bundle.steps.push({ ...s, ...owner, id: sid });
+      }
+      for (const { source_step_backup_key, ...t } of tasks) {
+        const linked = source_step_backup_key
+          ? stepIds.get(source_step_backup_key)
+          : null;
+        if (source_step_backup_key && !linked)
+          throw new Error("関連選考ステップが見つかりません");
+        bundle.tasks.push({
+          ...t,
+          ...owner,
+          id: crypto.randomUUID(),
+          selection_step_id: linked ?? null,
+        });
+      }
     } catch (e) {
       throw new Error(
         `${index + 2}行目を確認してください：${e instanceof Error ? e.message : "入力が不正です"}`,
@@ -184,4 +216,122 @@ export function downloadFile(
   a.download = name;
   a.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+export function exportCsvFiles(store: Store): Record<string, string> {
+  const parsed = Papa.parse<Record<string, string>>(
+    exportCsv(store).replace(/^\uFEFF/, ""),
+    { header: true, skipEmptyLines: true },
+  ).data;
+  const applications = parsed.map((a, i) => ({
+    ...Object.fromEntries(
+      Object.entries(a).filter(
+        ([key]) => !["selection_steps", "tasks"].includes(key),
+      ),
+    ),
+    backup_application_id: store.applications[i].id,
+  }));
+  const steps = parsed.flatMap((a, i) =>
+    (JSON.parse(a.selection_steps) as Record<string, unknown>[]).map((s) => ({
+      ...s,
+      backup_application_id: store.applications[i].id,
+    })),
+  );
+  const tasks = parsed.flatMap((a, i) =>
+    (JSON.parse(a.tasks) as Record<string, unknown>[]).map((t) => ({
+      ...t,
+      backup_application_id: store.applications[i].id,
+    })),
+  );
+  const csv = (rows: Record<string, unknown>[], fields: string[]) =>
+    "\uFEFF" + Papa.unparse({ fields, data: rows }, { escapeFormulae: true });
+  return {
+    "applications.csv": csv(applications, [
+      ...columns.filter((c) => !["selection_steps", "tasks"].includes(c)),
+      "backup_application_id",
+    ]),
+    "selection_steps.csv": csv(steps, [
+      "backup_application_id",
+      "backup_key",
+      "title",
+      "step_type",
+      "deadline",
+      "scheduled_at",
+      "completed",
+      "state",
+      "result",
+      "memo",
+      "url",
+      "order_index",
+    ]),
+    "tasks.csv": csv(tasks, [
+      "backup_application_id",
+      "source_step_backup_key",
+      "title",
+      "task_type",
+      "due_date",
+      "completed",
+      "memo",
+      "url",
+    ]),
+  };
+}
+export function parseCsvFiles(
+  files: Record<string, string>,
+  user: string,
+): ImportBundle {
+  for (const name of ["applications.csv", "selection_steps.csv", "tasks.csv"])
+    if (!(name in files))
+      throw new Error("3つのCSVをまとめて選択してください：" + name);
+  const read = (name: string) => {
+    const result = Papa.parse<Record<string, string>>(
+      files[name].replace(/^\uFEFF/, ""),
+      {
+        header: true,
+        skipEmptyLines: "greedy",
+        transform: (v) => (/^'[=+\-@\t\r]/.test(v) ? v.slice(1) : v),
+      },
+    );
+    if (result.errors.length)
+      throw new Error(name + ": " + result.errors[0].message);
+    return result.data;
+  };
+  const apps = read("applications.csv"),
+    steps = read("selection_steps.csv"),
+    tasks = read("tasks.csv");
+  const keys = new Set(apps.map((a) => a.backup_application_id));
+  if (keys.size !== apps.length || keys.has(""))
+    throw new Error("企業の関連IDが重複・未設定です");
+  if ([...steps, ...tasks].some((c) => !keys.has(c.backup_application_id)))
+    throw new Error("関連する企業が見つかりません");
+  const bool = (v: string) => {
+    if (!["true", "false"].includes(v)) throw new Error("完了状態が不正です");
+    return v === "true";
+  };
+  const rows = apps.map((a) => ({
+    ...a,
+    selection_steps: JSON.stringify(
+      steps
+        .filter((s) => s.backup_application_id === a.backup_application_id)
+        .map((s) => ({
+          ...s,
+          deadline: s.deadline || null,
+          scheduled_at: s.scheduled_at || null,
+          completed: bool(s.completed),
+          state: s.state || undefined,
+          order_index: Number(s.order_index),
+        })),
+    ),
+    tasks: JSON.stringify(
+      tasks
+        .filter((t) => t.backup_application_id === a.backup_application_id)
+        .map((t) => ({
+          ...t,
+          due_date: t.due_date || null,
+          completed: bool(t.completed),
+          source_step_backup_key: t.source_step_backup_key || null,
+        })),
+    ),
+  }));
+  return parseCsv(Papa.unparse(rows, { escapeFormulae: true }), user);
 }

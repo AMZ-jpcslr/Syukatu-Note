@@ -1,0 +1,808 @@
+[
+  {
+    "seed_key": "career-company-01",
+    "name": "Money Forward",
+    "industry": "IT / FinTech / SaaS",
+    "tags": [
+      "Product",
+      "Business",
+      "AI",
+      "Software",
+      "FinTech"
+    ],
+    "url": "https://recruit.moneyforward.com/students/",
+    "aliases": [
+      "マネーフォワード"
+    ]
+  },
+  {
+    "seed_key": "career-company-02",
+    "name": "SmartHR",
+    "industry": "IT / SaaS",
+    "tags": [
+      "Product",
+      "Business",
+      "SaaS",
+      "Software",
+      "ML"
+    ],
+    "url": "https://recruit.smarthr.co.jp/newgrads/",
+    "aliases": [
+      "スマートHR"
+    ]
+  },
+  {
+    "seed_key": "career-company-03",
+    "name": "Sansan",
+    "industry": "IT / SaaS",
+    "tags": [
+      "Product",
+      "Business",
+      "SaaS",
+      "Software",
+      "AI"
+    ],
+    "url": "https://jp.corp-sansan.com/recruit/newgrads/",
+    "aliases": [
+      "サンサン"
+    ]
+  },
+  {
+    "seed_key": "career-company-04",
+    "name": "CyberAgent",
+    "industry": "IT / Media / Advertising",
+    "tags": [
+      "Business",
+      "Product",
+      "AI",
+      "Software",
+      "Media",
+      "Advertising"
+    ],
+    "url": "https://www.cyberagent.co.jp/careers/students/",
+    "aliases": [
+      "サイバーエージェント"
+    ]
+  },
+  {
+    "seed_key": "career-company-05",
+    "name": "PKSHA Technology",
+    "industry": "AI / Software",
+    "tags": [
+      "AI",
+      "ML",
+      "Software",
+      "Business",
+      "Product"
+    ],
+    "url": "https://www.pkshatech.com/recruitment/",
+    "aliases": [
+      "PKSHA",
+      "パークシャ"
+    ]
+  },
+  {
+    "seed_key": "career-company-06",
+    "name": "DeNA",
+    "industry": "IT / Internet",
+    "tags": [
+      "Product",
+      "Business",
+      "Software",
+      "AI"
+    ],
+    "url": "https://student.dena.com/",
+    "aliases": [
+      "ディー・エヌ・エー"
+    ]
+  },
+  {
+    "seed_key": "career-company-07",
+    "name": "Mercari",
+    "industry": "IT / Marketplace",
+    "tags": [
+      "Product",
+      "Business",
+      "Software",
+      "Global"
+    ],
+    "url": "https://careers.mercari.com/new-graduates/",
+    "aliases": [
+      "メルカリ"
+    ]
+  },
+  {
+    "seed_key": "career-company-08",
+    "name": "Rakuten Group",
+    "industry": "IT / EC / FinTech",
+    "tags": [
+      "Product",
+      "Business",
+      "Software",
+      "FinTech",
+      "Global"
+    ],
+    "url": "https://global.rakuten.com/corp/careers/graduates/",
+    "aliases": [
+      "楽天グループ",
+      "楽天"
+    ]
+  },
+  {
+    "seed_key": "career-company-09",
+    "name": "LINE Yahoo",
+    "industry": "IT / Internet",
+    "tags": [
+      "Product",
+      "Product Planner",
+      "Business",
+      "Software",
+      "AI"
+    ],
+    "url": "https://www.lycorp.co.jp/ja/recruit/newgrads/",
+    "aliases": [
+      "LINEヤフー",
+      "ヤフー"
+    ]
+  },
+  {
+    "seed_key": "career-company-10",
+    "name": "Recruit",
+    "industry": "IT / HR / Media",
+    "tags": [
+      "Product",
+      "Business",
+      "BizDev",
+      "Data"
+    ],
+    "url": "https://www.recruit.co.jp/employment/students/",
+    "aliases": [
+      "リクルート"
+    ]
+  },
+  {
+    "seed_key": "career-company-11",
+    "name": "Sony Group",
+    "industry": "Electronics / Entertainment / IT",
+    "tags": [
+      "Product",
+      "Business",
+      "AI",
+      "Software",
+      "R&D"
+    ],
+    "url": "https://www.sony.com/ja/SonyInfo/Jobs/newgrads/",
+    "aliases": [
+      "Sony",
+      "ソニー",
+      "ソニーグループ"
+    ]
+  },
+  {
+    "seed_key": "career-company-12",
+    "name": "Canon",
+    "industry": "Electronics / Medical / Imaging",
+    "tags": [
+      "Software",
+      "AI",
+      "Medical",
+      "Product"
+    ],
+    "url": "https://global.canon/ja/employ/new/",
+    "aliases": [
+      "キヤノン",
+      "キャノン"
+    ]
+  },
+  {
+    "seed_key": "career-company-13",
+    "name": "NEC",
+    "industry": "IT / Electronics",
+    "tags": [
+      "DX",
+      "AI",
+      "Software",
+      "Business",
+      "Public"
+    ],
+    "url": "https://jpn.nec.com/recruit/newgraduate/",
+    "aliases": [
+      "日本電気"
+    ]
+  },
+  {
+    "seed_key": "career-company-14",
+    "name": "Panasonic Group",
+    "industry": "Electronics",
+    "tags": [
+      "DX",
+      "Product",
+      "Business",
+      "AI",
+      "Software"
+    ],
+    "url": "https://recruit.jpn.panasonic.com/",
+    "aliases": [
+      "Panasonic",
+      "パナソニック",
+      "パナソニックグループ"
+    ]
+  },
+  {
+    "seed_key": "career-company-15",
+    "name": "Mitsubishi Electric",
+    "industry": "Electronics / Infrastructure",
+    "tags": [
+      "DX",
+      "Software",
+      "Business",
+      "AI"
+    ],
+    "url": "https://www.mitsubishielectric.co.jp/saiyo/graduates/",
+    "aliases": [
+      "三菱電機"
+    ]
+  },
+  {
+    "seed_key": "career-company-16",
+    "name": "DENSO",
+    "industry": "Automotive / Mobility",
+    "tags": [
+      "Mobility",
+      "Software",
+      "AI",
+      "Product",
+      "Business"
+    ],
+    "url": "https://www.denso.com/jp/ja/careers/",
+    "aliases": [
+      "デンソー"
+    ]
+  },
+  {
+    "seed_key": "career-company-17",
+    "name": "Toyota Motor Corporation",
+    "industry": "Automotive / Mobility",
+    "tags": [
+      "Mobility",
+      "Product",
+      "AI",
+      "Software",
+      "Business"
+    ],
+    "url": "https://global.toyota/jp/careers/",
+    "aliases": [
+      "トヨタ自動車",
+      "トヨタ"
+    ]
+  },
+  {
+    "seed_key": "career-company-18",
+    "name": "Honda",
+    "industry": "Automotive / Mobility",
+    "tags": [
+      "Mobility",
+      "Product",
+      "DX",
+      "Software",
+      "Business"
+    ],
+    "url": "https://www.honda-recruit.jp/",
+    "aliases": [
+      "本田技研工業",
+      "ホンダ"
+    ]
+  },
+  {
+    "seed_key": "career-company-19",
+    "name": "Nissan Motor",
+    "industry": "Automotive / Mobility",
+    "tags": [
+      "Mobility",
+      "Product",
+      "Software",
+      "DX",
+      "Business"
+    ],
+    "url": "https://www.nissanmotor.jobs/japan/NE/",
+    "aliases": [
+      "日産自動車",
+      "日産"
+    ]
+  },
+  {
+    "seed_key": "career-company-20",
+    "name": "SUBARU",
+    "industry": "Automotive",
+    "tags": [
+      "Mobility",
+      "Software",
+      "Product",
+      "Business"
+    ],
+    "url": "https://www.subaru.co.jp/recruit/",
+    "aliases": [
+      "スバル"
+    ]
+  },
+  {
+    "seed_key": "career-company-21",
+    "name": "Fujitsu",
+    "industry": "IT / Technology",
+    "tags": [
+      "DX",
+      "Software",
+      "AI",
+      "Business",
+      "Product"
+    ],
+    "url": "https://fujitsu.recruiting.jp.fujitsu.com/",
+    "aliases": [
+      "富士通"
+    ]
+  },
+  {
+    "seed_key": "career-company-22",
+    "name": "Hitachi",
+    "industry": "Technology / Infrastructure",
+    "tags": [
+      "DX",
+      "AI",
+      "Software",
+      "Business",
+      "Infrastructure"
+    ],
+    "url": "https://www.hitachi.co.jp/recruit/newgraduate/",
+    "aliases": [
+      "日立製作所",
+      "日立"
+    ]
+  },
+  {
+    "seed_key": "career-company-23",
+    "name": "NTT DATA",
+    "industry": "IT / Systems Integration",
+    "tags": [
+      "DX",
+      "Software",
+      "Business",
+      "Product",
+      "AI"
+    ],
+    "url": "https://www.nttdata.com/global/ja/recruit/",
+    "aliases": [
+      "NTTデータ"
+    ]
+  },
+  {
+    "seed_key": "career-company-24",
+    "name": "NTT East",
+    "industry": "Telecom / IT",
+    "tags": [
+      "Product",
+      "Business",
+      "DX",
+      "AI",
+      "Infrastructure"
+    ],
+    "url": "https://newgrad.ntt-east.co.jp/",
+    "aliases": [
+      "NTT東日本"
+    ]
+  },
+  {
+    "seed_key": "career-company-25",
+    "name": "KDDI",
+    "industry": "Telecom / IT",
+    "tags": [
+      "Product",
+      "Business",
+      "DX",
+      "AI",
+      "Telecom"
+    ],
+    "url": "https://career.kddi.com/",
+    "aliases": [
+      "KDDI"
+    ]
+  },
+  {
+    "seed_key": "career-company-26",
+    "name": "SoftBank",
+    "industry": "Telecom / IT",
+    "tags": [
+      "Product",
+      "Business",
+      "AI",
+      "Software",
+      "New Business"
+    ],
+    "url": "https://recruit.softbank.jp/graduate/",
+    "aliases": [
+      "ソフトバンク"
+    ]
+  },
+  {
+    "seed_key": "career-company-27",
+    "name": "Amazon Japan",
+    "industry": "IT / Cloud / EC",
+    "tags": [
+      "Software",
+      "Product",
+      "Cloud",
+      "Business"
+    ],
+    "url": "https://www.amazon.jobs/content/en/career-programs/student-programs",
+    "aliases": [
+      "アマゾンジャパン",
+      "アマゾン"
+    ]
+  },
+  {
+    "seed_key": "career-company-28",
+    "name": "Preferred Networks",
+    "industry": "AI / Robotics",
+    "tags": [
+      "AI",
+      "ML",
+      "Robotics",
+      "Research",
+      "Software"
+    ],
+    "url": "https://www.preferred.jp/ja/careers/",
+    "aliases": [
+      "プリファードネットワークス",
+      "PFN"
+    ]
+  },
+  {
+    "seed_key": "career-company-29",
+    "name": "GMO Internet Group",
+    "industry": "IT / Infrastructure",
+    "tags": [
+      "Software",
+      "AI",
+      "Security",
+      "Infrastructure",
+      "Business"
+    ],
+    "url": "https://internet.gmo/recruit/rookies/",
+    "aliases": [
+      "GMOインターネットグループ"
+    ]
+  },
+  {
+    "seed_key": "career-company-30",
+    "name": "Works Applications",
+    "industry": "Enterprise Software",
+    "tags": [
+      "Software",
+      "Product",
+      "SaaS"
+    ],
+    "url": "https://www.worksap.co.jp/recruit/",
+    "aliases": [
+      "ワークスアプリケーションズ"
+    ]
+  },
+  {
+    "seed_key": "career-company-31",
+    "name": "SCSK",
+    "industry": "IT / SI",
+    "tags": [
+      "Software",
+      "DX",
+      "AI",
+      "Business"
+    ],
+    "url": "https://www.scsk.jp/recruit/saiyo/",
+    "aliases": [
+      "SCSK"
+    ]
+  },
+  {
+    "seed_key": "career-company-32",
+    "name": "ITOCHU Techno-Solutions",
+    "industry": "IT / SI",
+    "tags": [
+      "Cloud",
+      "AI",
+      "Software",
+      "Business",
+      "Trading"
+    ],
+    "url": "https://www.ctc-g.co.jp/recruit/newgrads/",
+    "aliases": [
+      "伊藤忠テクノソリューションズ",
+      "CTC"
+    ]
+  },
+  {
+    "seed_key": "career-company-33",
+    "name": "NS Solutions",
+    "industry": "IT / SI",
+    "tags": [
+      "Software",
+      "AI",
+      "DX"
+    ],
+    "url": "https://www.nssol.nipponsteel.com/recruit/",
+    "aliases": [
+      "日鉄ソリューションズ",
+      "NSSOL"
+    ]
+  },
+  {
+    "seed_key": "career-company-34",
+    "name": "NTT COMWARE",
+    "industry": "IT / Telecom",
+    "tags": [
+      "Software",
+      "Cloud",
+      "AI",
+      "Telecom"
+    ],
+    "url": "https://www.nttcom.co.jp/employ/recruit/",
+    "aliases": [
+      "NTTコムウェア"
+    ]
+  },
+  {
+    "seed_key": "career-company-35",
+    "name": "Mitsubishi Electric Digital Innovation",
+    "industry": "IT / DX",
+    "tags": [
+      "DX",
+      "AI",
+      "Software",
+      "Security"
+    ],
+    "url": "https://www.mitsubishielectric.co.jp/medigital/recruit/",
+    "aliases": [
+      "三菱電機デジタルイノベーション"
+    ]
+  },
+  {
+    "seed_key": "career-company-36",
+    "name": "Olympus",
+    "industry": "Medical Devices",
+    "tags": [
+      "Medical",
+      "Product",
+      "Digital",
+      "Software",
+      "AI"
+    ],
+    "url": "https://www.olympus.co.jp/recruit/newgraduates/",
+    "aliases": [
+      "オリンパス"
+    ]
+  },
+  {
+    "seed_key": "career-company-37",
+    "name": "Terumo",
+    "industry": "Medical Devices",
+    "tags": [
+      "Medical",
+      "DX",
+      "Product",
+      "Business",
+      "Data"
+    ],
+    "url": "https://recruit.terumo.co.jp/",
+    "aliases": [
+      "テルモ"
+    ]
+  },
+  {
+    "seed_key": "career-company-38",
+    "name": "OMRON",
+    "industry": "Electronics / Healthcare",
+    "tags": [
+      "Healthcare",
+      "AI",
+      "DX",
+      "Product",
+      "Automation"
+    ],
+    "url": "https://www.omron.com/jp/ja/recruit/newgraduate/",
+    "aliases": [
+      "オムロン"
+    ]
+  },
+  {
+    "seed_key": "career-company-39",
+    "name": "MUFG Bank",
+    "industry": "Banking / Financial",
+    "tags": [
+      "Finance",
+      "Digital",
+      "Product",
+      "Business",
+      "Global"
+    ],
+    "url": "https://www.saiyo.bk.mufg.jp/",
+    "aliases": [
+      "三菱UFJ銀行",
+      "MUFG"
+    ]
+  },
+  {
+    "seed_key": "career-company-40",
+    "name": "SMBC",
+    "industry": "Banking / Financial",
+    "tags": [
+      "Finance",
+      "Digital",
+      "Business",
+      "Product"
+    ],
+    "url": "https://www.smbc.co.jp/recruit/",
+    "aliases": [
+      "三井住友銀行"
+    ]
+  },
+  {
+    "seed_key": "career-company-41",
+    "name": "Mizuho Financial Group",
+    "industry": "Financial",
+    "tags": [
+      "Finance",
+      "Digital",
+      "Product",
+      "Business"
+    ],
+    "url": "https://www.mizuho-fg.co.jp/saiyou/",
+    "aliases": [
+      "みずほフィナンシャルグループ",
+      "みずほ銀行",
+      "Mizuho"
+    ]
+  },
+  {
+    "seed_key": "career-company-42",
+    "name": "Sumitomo Mitsui Trust Bank",
+    "industry": "Trust Bank / Financial",
+    "tags": [
+      "Finance",
+      "Digital",
+      "Business",
+      "IT"
+    ],
+    "url": "https://www.smtb.jp/recruit/new-graduate/",
+    "aliases": [
+      "三井住友信託銀行"
+    ]
+  },
+  {
+    "seed_key": "career-company-43",
+    "name": "Mitsubishi Corporation",
+    "industry": "General Trading Company",
+    "tags": [
+      "Trading",
+      "Business Development",
+      "Investment",
+      "Global",
+      "DX"
+    ],
+    "url": "https://www.career-mc.com/newgraduate/",
+    "aliases": [
+      "三菱商事"
+    ]
+  },
+  {
+    "seed_key": "career-company-44",
+    "name": "Mitsui & Co.",
+    "industry": "General Trading Company",
+    "tags": [
+      "Trading",
+      "Investment",
+      "Business Development",
+      "Global",
+      "DX"
+    ],
+    "url": "https://career.mitsui.com/",
+    "aliases": [
+      "三井物産"
+    ]
+  },
+  {
+    "seed_key": "career-company-45",
+    "name": "ITOCHU Corporation",
+    "industry": "General Trading Company",
+    "tags": [
+      "Trading",
+      "Business",
+      "Investment",
+      "Global",
+      "DX"
+    ],
+    "url": "https://career.itochu.co.jp/student/",
+    "aliases": [
+      "伊藤忠商事",
+      "ITOCHU"
+    ]
+  },
+  {
+    "seed_key": "career-company-46",
+    "name": "Sumitomo Corporation",
+    "industry": "General Trading Company",
+    "tags": [
+      "Trading",
+      "Business Development",
+      "Investment",
+      "DX",
+      "Global"
+    ],
+    "url": "https://sumitomocorp-recruiting.com/",
+    "aliases": [
+      "住友商事"
+    ]
+  },
+  {
+    "seed_key": "career-company-47",
+    "name": "Marubeni",
+    "industry": "General Trading Company",
+    "tags": [
+      "Trading",
+      "Business",
+      "Investment",
+      "AI",
+      "DX",
+      "Global"
+    ],
+    "url": "https://www.marubeni-recruit.com/",
+    "aliases": [
+      "丸紅"
+    ]
+  },
+  {
+    "seed_key": "career-company-48",
+    "name": "Toyota Tsusho",
+    "industry": "Trading / Mobility",
+    "tags": [
+      "Trading",
+      "Mobility",
+      "Business",
+      "Investment",
+      "DX"
+    ],
+    "url": "https://www.toyota-tsusho-recruit.com/",
+    "aliases": [
+      "豊田通商"
+    ]
+  },
+  {
+    "seed_key": "career-company-49",
+    "name": "Dentsu",
+    "industry": "Advertising / Marketing",
+    "tags": [
+      "Marketing",
+      "Business",
+      "DX",
+      "Product",
+      "Creative"
+    ],
+    "url": "https://www.dentsu.co.jp/careers/",
+    "aliases": [
+      "電通"
+    ]
+  },
+  {
+    "seed_key": "career-company-50",
+    "name": "SB C&S",
+    "industry": "IT Trading",
+    "tags": [
+      "Trading",
+      "IT",
+      "Business",
+      "Cloud",
+      "AI",
+      "Product"
+    ],
+    "url": "https://recruit.cas.softbank.jp/newgrad/",
+    "aliases": [
+      "SB C&S"
+    ]
+  }
+]

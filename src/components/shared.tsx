@@ -94,7 +94,7 @@ export function StatusBadge({ status }: { status: string }) {
   );
 }
 export function DueBadge({ date }: { date: string | null }) {
-  if (!date) return <span className="muted">未設定</span>;
+  if (!date) return <span className="muted">未発表・要確認</span>;
   const days = daysUntil(date);
   return (
     <span
@@ -114,7 +114,7 @@ export function DueBadge({ date }: { date: string | null }) {
       <span>{displayDate(date, "M/d")}</span>
       {days >= 0 && days <= 7 && (
         <small>
-          {days === 0 ? "今日" : days === 1 ? "明日" : `あと${days}日`}
+          {days === 0 ? "今日締切" : days === 1 ? "明日締切" : `あと${days}日`}
         </small>
       )}
       {days < 0 && <small>期限超過</small>}
