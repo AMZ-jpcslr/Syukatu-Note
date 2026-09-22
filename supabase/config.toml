@@ -1,0 +1,10 @@
+project_id = "shukatsu-calendar"
+[api]
+enabled = true
+max_rows = 10000
+[db]
+major_version = 17
+[auth]
+enabled = true
+site_url = "http://localhost:3000"
+enable_anonymous_sign_ins = true

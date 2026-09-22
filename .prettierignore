@@ -1,0 +1,7 @@
+node_modules
+.next
+pnpm-lock.yaml
+*.tsbuildinfo
+playwright-report
+test-results
+.env*
