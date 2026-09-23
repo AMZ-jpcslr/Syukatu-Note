@@ -74,6 +74,8 @@ describe("validation and publication boundary", () => {
         "selection_type",
         "application_start",
         "application_deadline",
+        "deadline_type",
+        "application_status",
         "url",
         "public_flow",
       ].sort(),

@@ -56,6 +56,8 @@ export function publicPayload(a: Application, publicFlow: PublicStep[]) {
     selection_type: a.selection_type,
     application_start: a.application_start,
     application_deadline: a.application_deadline,
+    deadline_type: a.deadline_type ?? "date",
+    application_status: a.application_status ?? "unknown",
     url: a.url,
     public_flow: publicFlow.map((s) => ({
       title: s.title,
@@ -67,6 +69,7 @@ export function publicPayload(a: Application, publicFlow: PublicStep[]) {
 export function deadlineChanged(a: Application, t: Template) {
   return (
     a.recruitment_template_id === t.id &&
-    (a.copied_application_deadline ?? null) !== t.application_deadline
+    ((a.copied_application_deadline ?? null) !== t.application_deadline ||
+      (a.copied_deadline_type ?? "date") !== (t.deadline_type ?? "date"))
   );
 }

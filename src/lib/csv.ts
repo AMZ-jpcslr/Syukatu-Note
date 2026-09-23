@@ -47,6 +47,8 @@ const columns = [
   "selection_type",
   "application_start",
   "application_deadline",
+  "deadline_type",
+  "application_status",
   "url",
   "location",
   "priority",
@@ -67,6 +69,8 @@ export function exportCsv(store: Store) {
     selection_type: a.selection_type,
     application_start: a.application_start ?? "",
     application_deadline: a.application_deadline ?? "",
+    deadline_type: a.deadline_type ?? "date",
+    application_status: a.application_status ?? "unknown",
     url: a.url,
     location: a.location,
     priority: a.priority,
@@ -151,6 +155,8 @@ export function parseCsv(text: string, user: string): ImportBundle {
     try {
       const input = applicationSchema.parse({
         ...row,
+        deadline_type: row.deadline_type || "date",
+        application_status: row.application_status || "unknown",
         graduation_year: Number(row.graduation_year),
       });
       const id = crypto.randomUUID();

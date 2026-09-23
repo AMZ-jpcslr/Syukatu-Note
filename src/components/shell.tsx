@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { isDemo } from "@/lib/supabase";
+import { groupApplications } from "@/lib/applications";
 import { cn } from "@/lib/utils";
 import {
   todayKey,
@@ -77,7 +78,9 @@ export function Shell({ children }: { children: React.ReactNode }) {
               <Icon size={18} />
               {label}
               {href === "/companies" && data && (
-                <span className="nav-count">{data.applications.length}</span>
+                <span className="nav-count">
+                  {groupApplications(data.applications).length}
+                </span>
               )}
             </Link>
           ))}

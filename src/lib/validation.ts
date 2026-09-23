@@ -20,6 +20,10 @@ export const applicationSchema = z
     selection_type: z.enum(selectionTypes),
     application_start: day,
     application_deadline: day,
+    deadline_type: z.enum(["date", "capacity"]).optional(),
+    application_status: z
+      .enum(["open", "upcoming", "closed", "unknown"])
+      .optional(),
     url: safeUrl,
     location: z.string().max(120),
     priority: z.enum(priorities),
@@ -48,6 +52,8 @@ export const defaultApplication: ApplicationInput = {
   selection_type: "本選考",
   application_start: "",
   application_deadline: "",
+  deadline_type: "date",
+  application_status: "unknown",
   url: "",
   location: "",
   priority: "B",

@@ -37,6 +37,19 @@ it("upgrades a populated v1 database without changing identities or losing legac
     await db.exec(
       readFileSync("supabase/migrations/202609220003_v11.sql", "utf8"),
     );
+    await db.exec(
+      readFileSync(
+        "supabase/migrations/202609230004_capacity_deadlines.sql",
+        "utf8",
+      ),
+    );
+    expect(
+      (
+        await db.query(
+          "select deadline_type,application_status from user_applications",
+        )
+      ).rows[0],
+    ).toEqual({ deadline_type: "date", application_status: "unknown" });
     expect(
       (
         await db.query<Record<string, unknown>>(

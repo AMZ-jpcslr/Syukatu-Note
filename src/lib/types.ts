@@ -72,7 +72,12 @@ export const eventTypes = [
   "その他",
 ] as const;
 export type EventType = (typeof eventTypes)[number];
+export type DeadlineType = "date" | "capacity";
+export type RecruitmentStatus = "open" | "upcoming" | "closed" | "unknown";
 export interface Application {
+  deadline_type?: DeadlineType;
+  copied_deadline_type?: DeadlineType;
+  application_status?: RecruitmentStatus;
   copied_application_deadline?: string | null;
   last_verified_at?: string | null;
   id: string;
@@ -154,6 +159,7 @@ export interface PublicStep {
   step_type: EventType;
 }
 export interface Template {
+  deadline_type?: DeadlineType;
   industry?: string;
   tags?: string[];
   aliases?: string[];

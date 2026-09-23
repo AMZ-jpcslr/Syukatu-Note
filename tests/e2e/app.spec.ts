@@ -421,3 +421,134 @@ test("bulk citations respect filters, skip existing copies and stay on templates
     ),
   ).toBe(false);
 });
+
+test("capacity deadlines, manual closure and multiple roles grouped by company", async ({
+  page,
+}, testInfo) => {
+  await page.goto("/companies");
+  await page
+    .getByRole("button", { name: "企業を追加", exact: true })
+    .first()
+    .click();
+  const dialog = page.getByRole("dialog");
+  await dialog.getByLabel("企業名").fill("複数職種テスト株式会社");
+  await dialog.getByLabel("業界", { exact: true }).fill("IT");
+  await dialog.getByLabel("職種", { exact: true }).fill("事業企画");
+  await dialog.getByLabel("募集名", { exact: true }).fill("事業企画コース");
+  await dialog.getByLabel("募集URL").fill("https://example.com/careers");
+  await dialog.getByLabel("締切の種類").selectOption("capacity");
+  await dialog
+    .getByRole("combobox", { name: "募集状況", exact: true })
+    .selectOption("open");
+  await dialog
+    .getByRole("combobox", { name: "ステータス", exact: true })
+    .selectOption("選考中");
+  await dialog.getByLabel("自分用メモ").fill("個人用の企画メモ");
+  await dialog.getByRole("button", { name: "企業を登録", exact: true }).click();
+  await expect(dialog).not.toBeVisible();
+  await page
+    .getByRole("link")
+    .filter({ hasText: "複数職種テスト株式会社" })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "複数職種テスト株式会社", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("定員に達し次第終了", { exact: true }).first(),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "タスク", exact: true }).click();
+  await page.getByRole("button", { name: "タスクを追加" }).click();
+  await dialog.getByLabel("タスク名").fill("企画面接の準備");
+  await dialog.getByRole("button", { name: "保存する" }).click();
+  await expect(dialog).not.toBeVisible();
+  await page.getByRole("button", { name: "概要", exact: true }).click();
+  await page
+    .getByRole("button", { name: "募集終了にする", exact: true })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "募集中に戻す", exact: true }),
+  ).toBeVisible();
+  await page.reload();
+  await expect(
+    page.getByRole("button", { name: "募集中に戻す", exact: true }),
+  ).toBeVisible();
+  await expect(page.getByText("選考中", { exact: true }).first()).toBeVisible();
+  await page.getByRole("button", { name: "タスク", exact: true }).click();
+  await expect(page.getByText("企画面接の準備", { exact: true })).toBeVisible();
+  await page
+    .getByRole("button", { name: "別の職種・募集を追加", exact: true })
+    .click();
+  await expect(dialog.getByLabel("企業名")).toHaveValue(
+    "複数職種テスト株式会社",
+  );
+  await expect(dialog.getByLabel("自分用メモ")).toHaveValue("");
+  await expect(dialog.getByLabel("締切の種類")).toHaveValue("date");
+  await dialog.getByLabel("職種", { exact: true }).fill("エンジニア");
+  await dialog.getByLabel("募集名", { exact: true }).fill("エンジニアコース");
+  await dialog.getByLabel("応募締切日").fill("2028-11-01");
+  await dialog.getByRole("button", { name: "企業を登録", exact: true }).click();
+  await expect(dialog).not.toBeVisible();
+  await page
+    .getByRole("navigation", { name: "募集を切り替え" })
+    .getByRole("link")
+    .filter({ hasText: "エンジニアコース" })
+    .click();
+  await page.getByRole("button", { name: "タスク", exact: true }).click();
+  await expect(page.getByText("企画面接の準備", { exact: true })).toHaveCount(
+    0,
+  );
+  await page.goto("/companies");
+  await page.getByLabel("企業を検索").fill("複数職種テスト");
+  await expect(page.locator(".company-group")).toHaveCount(1);
+  await expect(page.locator(".company-group").getByRole("link")).toHaveCount(2);
+  await expect(
+    page.locator(".company-group").getByText("募集終了", { exact: true }),
+  ).toBeVisible();
+  await page.screenshot({
+    path: `test-results/${testInfo.project.name}-company-groups.png`,
+    fullPage: true,
+  });
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth > innerWidth,
+    ),
+  ).toBe(false);
+  await page
+    .getByRole("combobox", { name: "募集状況", exact: true })
+    .selectOption("closed");
+  await expect(page.locator(".company-group").getByRole("link")).toHaveCount(1);
+  await page.locator(".company-group").getByRole("link").click();
+  await page.getByRole("button", { name: "他の就活生にも共有" }).click();
+  await expect(dialog.getByText(/定員に達し次第終了/)).toBeVisible();
+  await dialog
+    .getByLabel("募集URLが企業の公式採用ページであることを確認しました")
+    .check();
+  await dialog.getByRole("button", { name: "この内容で公開する" }).click();
+  await expect(dialog).not.toBeVisible();
+  await page.goto("/templates");
+  await page.getByLabel("公開募集を検索").fill("複数職種テスト");
+  await expect(
+    page.getByText("定員に達し次第終了", { exact: true }),
+  ).toBeVisible();
+  await expect(page.getByText("募集終了", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "募集中に戻す", exact: true }).click();
+  await expect(page.getByText("募集中", { exact: true })).toBeVisible();
+  await page
+    .getByRole("button", { name: "応募予定に追加", exact: true })
+    .click();
+  await dialog.getByRole("button", { name: "あとで", exact: true }).click();
+  const snapshot = await page.evaluate(() => {
+    const store = JSON.parse(localStorage.getItem("shukatsu-demo-v1")!);
+    return store.applications.find(
+      (a: { company_name: string; recruitment_template_id: string | null }) =>
+        a.company_name === "複数職種テスト株式会社" &&
+        a.recruitment_template_id,
+    );
+  });
+  expect(snapshot).toMatchObject({
+    deadline_type: "capacity",
+    application_deadline: null,
+    application_status: "open",
+    status: "応募予定",
+  });
+});

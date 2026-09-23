@@ -1,4 +1,6 @@
 "use client";
+import { groupApplications, deadlineLabel } from "@/lib/applications";
+import { applicationStatusLabels } from "@/lib/types";
 import { SelectionFlow } from "./selection-flow";
 import { ESSearch } from "./es-search";
 import { useState } from "react";
@@ -30,6 +32,7 @@ import { Dialog } from "./ui/dialog";
 import {
   CompanyMark,
   DueBadge,
+  ApplicationDeadline,
   Empty,
   ErrorState,
   ExternalLink,
@@ -51,6 +54,7 @@ export function CompanyDetail({
   const router = useRouter();
   const [tab, setTab] = useState(initialTab);
   const [edit, setEdit] = useState(initialEdit);
+  const [addSibling, setAddSibling] = useState(false);
   const [publish, setPublish] = useState(false);
   const [child, setChild] = useState<{ table: ChildTable; item?: Child }>();
   const [remove, setRemove] = useState<{
@@ -70,6 +74,9 @@ export function CompanyDetail({
         </Button>
       </Empty>
     );
+  const siblings = groupApplications(data.applications).find((g) =>
+    g.applications.some((item) => item.id === id),
+  )!.applications;
   const steps = data.steps
     .filter((s) => s.user_application_id === id)
     .sort((a, b) => a.order_index - b.order_index);
@@ -125,6 +132,36 @@ export function CompanyDetail({
           </Button>
         </div>
       </div>
+      <section className="panel mb-5 p-4" aria-label="同じ企業の募集">
+        <div className="flex items-center justify-between flex-wrap gap-3 mb-3">
+          <h2>
+            この企業の募集 <span className="count-pill">{siblings.length}</span>
+          </h2>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setAddSibling(true)}
+          >
+            別の職種・募集を追加
+          </Button>
+        </div>
+        <nav className="flex gap-2 flex-wrap" aria-label="募集を切り替え">
+          {siblings.map((item) => (
+            <Link
+              key={item.id}
+              href={"/companies/" + item.id}
+              aria-current={item.id === id ? "page" : undefined}
+              className={
+                "tag " + (item.id === id ? "font-semibold" : "text-link")
+              }
+            >
+              {item.graduation_year}卒 ·{" "}
+              {item.position_name || item.job_category || "募集名未設定"} ·{" "}
+              {item.selection_type}
+            </Link>
+          ))}
+        </nav>
+      </section>
       <div className="detail-progress panel">
         <div>
           <span className="muted text-xs">選考の進捗</span>
@@ -149,12 +186,43 @@ export function CompanyDetail({
         <div className="detail-grid">
           <section className="panel p-6">
             <h2 className="mb-5">募集情報</h2>
+            <div className="mb-5">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={action.busy}
+                onClick={() =>
+                  action.run(
+                    () =>
+                      saveApplication({
+                        ...a,
+                        application_status:
+                          a.application_status === "closed" ? "open" : "closed",
+                      }),
+                    a.application_status === "closed"
+                      ? "募集中に戻しました"
+                      : "募集終了を記録しました",
+                  )
+                }
+              >
+                {a.application_status === "closed"
+                  ? "募集中に戻す"
+                  : "募集終了にする"}
+              </Button>
+              <p className="muted text-xs mt-2">
+                確認した募集状況を自分の手帳に記録します。選考・面接・タスクはそのまま残ります。
+              </p>
+            </div>
             <dl className="detail-dl">
               {[
                 ["企業名", a.company_name],
                 ["業界", a.industry || "未設定"],
                 ["志望度", a.priority],
                 ["ステータス", a.status],
+                [
+                  "募集状況",
+                  applicationStatusLabels[a.application_status ?? "unknown"],
+                ],
                 [
                   "最終確認日",
                   a.last_verified_at
@@ -167,7 +235,7 @@ export function CompanyDetail({
                 ["卒年度", a.graduation_year + "卒"],
                 ["選考区分", a.selection_type],
                 ["応募開始日", displayDate(a.application_start, "yyyy/M/d")],
-                ["応募締切", displayDate(a.application_deadline, "yyyy/M/d")],
+                ["応募締切", deadlineLabel(a)],
                 ["勤務地", a.location || "—"],
               ].map(([label, value]) => (
                 <div key={label}>
@@ -206,7 +274,7 @@ export function CompanyDetail({
             <div className="mt-8 pt-5 border-t border-border">
               <span className="muted text-xs">応募締切</span>
               <div className="mt-2">
-                <DueBadge date={a.application_deadline} />
+                <ApplicationDeadline application={a} />
               </div>
             </div>
           </section>
@@ -429,6 +497,11 @@ export function CompanyDetail({
           setEdit(false);
           router.replace(`/companies/${id}`);
         }}
+      />
+      <ApplicationForm
+        open={addSibling}
+        company={a}
+        onClose={() => setAddSibling(false)}
       />
       {publish && (
         <PublishDialog application={a} onClose={() => setPublish(false)} />

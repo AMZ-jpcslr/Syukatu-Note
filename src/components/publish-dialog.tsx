@@ -3,6 +3,8 @@ import { useState } from "react";
 import type { Application, EventType } from "@/lib/types";
 import { eventTypes } from "@/lib/types";
 import { publishTemplate } from "@/lib/repository";
+import { deadlineLabel } from "@/lib/applications";
+import { applicationStatusLabels } from "@/lib/types";
 import { displayDate } from "@/lib/dates";
 import { similarTemplates } from "@/lib/templates";
 import { TemplateCopyButtons } from "./template-card";
@@ -46,8 +48,10 @@ export function PublishDialog({
           {a.position_name} · {a.selection_type}
         </p>
         <p>
-          応募開始 {displayDate(a.application_start)} → 締切{" "}
-          {displayDate(a.application_deadline)}
+          応募開始 {displayDate(a.application_start)} → 締切 {deadlineLabel(a)}
+        </p>
+        <p>
+          募集状況：{applicationStatusLabels[a.application_status ?? "unknown"]}
         </p>
         <p className="break-all">{a.url || "募集URLなし"}</p>
       </div>

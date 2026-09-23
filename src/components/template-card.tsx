@@ -14,6 +14,7 @@ import {
   setApplicationPriority,
   toggleWatchlist,
 } from "@/lib/repository";
+import { deadlineLabel } from "@/lib/applications";
 import { displayDate } from "@/lib/dates";
 import { useAction, useStore } from "./providers";
 import { Button } from "./ui/button";
@@ -146,11 +147,7 @@ export function TemplateCard({
         </div>
         <div>
           <dt>締切</dt>
-          <dd>
-            {t.application_deadline
-              ? displayDate(t.application_deadline, "yyyy/M/d")
-              : "未発表・要確認"}
-          </dd>
+          <dd>{deadlineLabel(t)}</dd>
         </div>
         <div>
           <dt>情報元</dt>

@@ -8,13 +8,16 @@ import {
   List,
   SlidersHorizontal,
 } from "lucide-react";
+import { CompanyGroups } from "./company-groups";
+import { groupApplications } from "@/lib/applications";
+import { applicationStatusLabels, type Application } from "@/lib/types";
 import { CompanyTabs } from "./templates";
 import { useStore } from "./providers";
 import { ApplicationForm } from "./application-form";
 import { Button } from "./ui/button";
 import {
   CompanyMark,
-  DueBadge,
+  ApplicationDeadline,
   Empty,
   ErrorState,
   Loading,
@@ -27,8 +30,9 @@ import { progress } from "@/lib/dates";
 export function Companies() {
   const { data, error, isPending, refetch } = useStore();
   const [add, setAdd] = useState(false);
+  const [addCompany, setAddCompany] = useState<Application>();
   const [search, setSearch] = useState("");
-  const [view, setView] = useState("table");
+  const [view, setView] = useState("group");
   const [sort, setSort] = useState("deadline");
   const [filter, setFilter] = useState<Record<string, string>>(() => ({
     status:
@@ -52,6 +56,8 @@ export function Companies() {
         (!filter.job || a.job_category === filter.job) &&
         (!filter.selection || a.selection_type === filter.selection) &&
         (!filter.status || a.status === filter.status) &&
+        (!filter.availability ||
+          (a.application_status ?? "unknown") === filter.availability) &&
         (!filter.priority || a.priority === filter.priority) &&
         (!filter.from ||
           (!!a.application_deadline &&
@@ -75,7 +81,7 @@ export function Companies() {
       <PageHeading
         eyebrow="MY APPLICATIONS"
         title="企業一覧"
-        description={`${data.applications.length}社の選考を、ひとつの場所で。`}
+        description={`${groupApplications(data.applications).length}社・${data.applications.length}件の募集を、ひとつの場所で。`}
       >
         <Button onClick={() => setAdd(true)}>
           <Plus size={16} />
@@ -105,6 +111,13 @@ export function Companies() {
             <option value="progress">進捗順</option>
           </select>
           <div className="segmented">
+            <button
+              aria-label="企業ごとに表示"
+              className={view === "group" ? "active" : ""}
+              onClick={() => setView("group")}
+            >
+              企業ごと
+            </button>
             <button
               aria-label="テーブル表示"
               className={view === "table" ? "active" : ""}
@@ -154,6 +167,18 @@ export function Companies() {
               ))}
             </select>
           ))}
+          <select
+            aria-label="募集状況"
+            value={filter.availability ?? ""}
+            onChange={(e) => set("availability", e.target.value)}
+          >
+            <option value="">募集状況：すべて</option>
+            {Object.entries(applicationStatusLabels).map(([value, label]) => (
+              <option value={value} key={value}>
+                {label}
+              </option>
+            ))}
+          </select>
           <label>
             締切
             <input
@@ -180,8 +205,20 @@ export function Companies() {
             クリア
           </button>
         </div>
-        <div className="list-result-count">{items.length} 件の企業</div>
-        {view === "table" ? (
+        <div className="list-result-count">
+          {groupApplications(items, data.applications).length} 社・
+          {items.length} 件の募集
+        </div>
+        {view === "group" ? (
+          <CompanyGroups
+            items={items}
+            store={data}
+            onAdd={(a) => {
+              setAddCompany(a);
+              setAdd(true);
+            }}
+          />
+        ) : view === "table" ? (
           <div className="table-scroll">
             <table>
               <thead>
@@ -223,7 +260,7 @@ export function Companies() {
                       <span className="tag">{a.selection_type}</span>
                     </td>
                     <td>
-                      <DueBadge date={a.application_deadline} />
+                      <ApplicationDeadline application={a} />
                     </td>
                     <td>
                       <StatusBadge status={a.status} />
@@ -259,7 +296,7 @@ export function Companies() {
                 </p>
                 <div className="flex justify-between my-5 gap-2">
                   <StatusBadge status={a.status} />
-                  <DueBadge date={a.application_deadline} />
+                  <ApplicationDeadline application={a} />
                 </div>
                 <Progress {...progress(data, a.id)} />
               </Link>
@@ -281,7 +318,14 @@ export function Companies() {
           </Empty>
         )}
       </div>
-      <ApplicationForm open={add} onClose={() => setAdd(false)} />
+      <ApplicationForm
+        open={add}
+        company={addCompany}
+        onClose={() => {
+          setAdd(false);
+          setAddCompany(undefined);
+        }}
+      />
     </>
   );
 }

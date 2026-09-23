@@ -14,20 +14,27 @@ import { selectionTypes, priorities, statuses } from "@/lib/types";
 import { saveApplication } from "@/lib/repository";
 import { initializeUser } from "@/lib/supabase";
 import { similarTemplates } from "@/lib/templates";
-import { useAction, useTemplates } from "./providers";
+import { companyNameKey } from "@/lib/applications";
+import { useAction, useTemplates, useStore } from "./providers";
 import { Dialog } from "./ui/dialog";
 import { Button } from "./ui/button";
 export function ApplicationForm({
   open,
   onClose,
   application,
+  company,
 }: {
   open: boolean;
   onClose: () => void;
   application?: Application;
+  company?: Pick<
+    Application,
+    "company_id" | "company_name" | "industry" | "graduation_year"
+  >;
 }) {
   const { data: templates = [] } = useTemplates();
   const action = useAction();
+  const { data: store } = useStore();
   const {
     register,
     handleSubmit,
@@ -36,7 +43,16 @@ export function ApplicationForm({
     formState: { errors },
   } = useForm<ApplicationInput>({
     resolver: zodResolver(applicationSchema),
-    defaultValues: defaultApplication,
+    defaultValues: {
+      ...defaultApplication,
+      ...(company
+        ? {
+            company_name: company.company_name,
+            industry: company.industry,
+            graduation_year: company.graduation_year,
+          }
+        : {}),
+    },
   });
   useEffect(() => {
     if (open)
@@ -44,13 +60,24 @@ export function ApplicationForm({
         application
           ? {
               ...application,
+              deadline_type: application.deadline_type ?? "date",
+              application_status: application.application_status ?? "unknown",
               application_start: application.application_start ?? "",
               application_deadline: application.application_deadline ?? "",
               tags: application.tags.join(", "),
             }
-          : defaultApplication,
+          : {
+              ...defaultApplication,
+              ...(company
+                ? {
+                    company_name: company.company_name,
+                    industry: company.industry,
+                    graduation_year: company.graduation_year,
+                  }
+                : {}),
+            },
       );
-  }, [open, application, reset]);
+  }, [open, application, company, reset]);
   const [name, year, job, position, selection] = useWatch({
     control,
     name: [
@@ -61,6 +88,7 @@ export function ApplicationForm({
       "selection_type",
     ],
   });
+  const deadlineType = useWatch({ control, name: "deadline_type" });
   const similar = application
     ? []
     : similarTemplates(
@@ -81,7 +109,13 @@ export function ApplicationForm({
         ...values,
         id: application?.id ?? crypto.randomUUID(),
         user_id: user,
-        company_id: application?.company_id ?? null,
+        company_id:
+          application?.company_id ??
+          (company &&
+          companyNameKey(values.company_name) ===
+            companyNameKey(company.company_name)
+            ? company.company_id
+            : null),
         recruitment_template_id: application?.recruitment_template_id ?? null,
         research: application?.research ?? "",
         created_at: application?.created_at ?? new Date().toISOString(),
@@ -105,7 +139,18 @@ export function ApplicationForm({
       <form onSubmit={handleSubmit(submit)} className="form-grid">
         <label className="span-2">
           企業名 <span className="required">*</span>
-          <input {...register("company_name")} placeholder="例：楽天グループ" />
+          <input
+            {...register("company_name")}
+            placeholder="例：楽天グループ"
+            list="my-company-names"
+          />
+          <datalist id="my-company-names">
+            {[...new Set(store?.applications.map((a) => a.company_name))].map(
+              (name) => (
+                <option key={name} value={name} />
+              ),
+            )}
+          </datalist>
           {errors.company_name && (
             <small className="field-error">{errors.company_name.message}</small>
           )}
@@ -170,13 +215,38 @@ export function ApplicationForm({
           <input type="date" {...register("application_start")} />
         </label>
         <label>
+          締切の種類
+          <select {...register("deadline_type")}>
+            <option value="date">日付指定（未定の場合は空欄）</option>
+            <option value="capacity">定員に達し次第終了</option>
+          </select>
+        </label>
+        <label>
           応募締切日
           <input type="date" {...register("application_deadline")} />
+          {deadlineType === "capacity" && (
+            <small className="muted">
+              最終締切がある場合のみ入力してください。日付なしでも保存できます。
+            </small>
+          )}
           {errors.application_deadline && (
             <small className="field-error">
               {errors.application_deadline.message}
             </small>
           )}
+        </label>
+        <label>
+          募集状況
+          <select aria-label="募集状況" {...register("application_status")}>
+            {Object.entries(applicationStatusLabels).map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </select>
+          <small className="muted">
+            受付終了を確認したら「募集終了」に変更できます。選考ステータスは維持されます。
+          </small>
         </label>
         <label>
           志望度

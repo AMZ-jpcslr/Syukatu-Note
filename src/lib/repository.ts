@@ -190,7 +190,7 @@ export async function publishTemplate(a: Application, flow: PublicStep[]) {
       source_url: a.url,
       source_type: "user_submitted",
       verification_status: "unverified",
-      application_status: "unknown",
+      application_status: a.application_status ?? "unknown",
       last_verified_at: null,
       id: crypto.randomUUID(),
       company_id: a.company_id ?? crypto.randomUUID(),
@@ -245,11 +245,14 @@ export async function copyTemplate(t: Template): Promise<string> {
     selection_type: t.selection_type,
     application_start: t.application_start,
     application_deadline: t.application_deadline,
+    deadline_type: t.deadline_type ?? "date",
     url: t.url,
     location: "",
     priority: "未設定",
     status: "応募予定",
+    application_status: t.application_status ?? "unknown",
     copied_application_deadline: t.application_deadline,
+    copied_deadline_type: t.deadline_type ?? "date",
     last_verified_at: t.last_verified_at ?? null,
     memo: "",
     research: "",
@@ -366,15 +369,13 @@ export async function toggleWatchlist(templateId: string, watched: boolean) {
     return;
   }
   const { error } = watched
-    ? await supabase!
-        .from("watchlist")
-        .upsert(
-          { user_id: user, recruitment_template_id: templateId },
-          {
-            onConflict: "user_id,recruitment_template_id",
-            ignoreDuplicates: true,
-          },
-        )
+    ? await supabase!.from("watchlist").upsert(
+        { user_id: user, recruitment_template_id: templateId },
+        {
+          onConflict: "user_id,recruitment_template_id",
+          ignoreDuplicates: true,
+        },
+      )
     : await supabase!
         .from("watchlist")
         .delete()
@@ -405,14 +406,12 @@ export async function reportTemplate(
     );
     return;
   }
-  const { error } = await supabase!
-    .from("template_reports")
-    .insert({
-      template_id: templateId,
-      user_id: user,
-      report_type: reportType,
-      comment,
-    });
+  const { error } = await supabase!.from("template_reports").insert({
+    template_id: templateId,
+    user_id: user,
+    report_type: reportType,
+    comment,
+  });
   if (error) throw error;
 }
 export async function applyTemplateDeadline(a: Application, t: Template) {
@@ -420,14 +419,17 @@ export async function applyTemplateDeadline(a: Application, t: Template) {
     await saveApplication({
       ...a,
       application_deadline: t.application_deadline,
+      deadline_type: t.deadline_type ?? "date",
       copied_application_deadline: t.application_deadline,
+      copied_deadline_type: t.deadline_type ?? "date",
       last_verified_at: t.last_verified_at,
     });
     return;
   }
-  const { error } = await supabase!.rpc("apply_template_deadline", {
+  const { error } = await supabase!.rpc("apply_template_deadline_details", {
     application_id: a.id,
     expected_deadline: t.application_deadline,
+    expected_type: t.deadline_type ?? "date",
   });
   if (error) throw error;
 }
@@ -466,5 +468,32 @@ export async function setApplicationPriority(
     .update({ priority })
     .eq("id", id)
     .eq("user_id", user);
+  if (error) throw error;
+}
+
+export async function setTemplateStatus(
+  id: string,
+  status: NonNullable<Template["application_status"]>,
+) {
+  const user = await initializeUser();
+  if (isDemo) {
+    const templates = await loadTemplates();
+    localStorage.setItem(
+      "shukatsu-demo-templates",
+      JSON.stringify(
+        templates.map((t) =>
+          t.id === id && t.created_by_user_id === user
+            ? { ...t, application_status: status }
+            : t,
+        ),
+      ),
+    );
+    return;
+  }
+  const { error } = await supabase!
+    .from("recruitment_templates")
+    .update({ application_status: status })
+    .eq("id", id)
+    .eq("created_by_user_id", user);
   if (error) throw error;
 }

@@ -5,7 +5,12 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Copy } from "lucide-react";
 import { toast } from "sonner";
 import { useTemplates, useAction, useStore } from "./providers";
-import { setTemplatePublic, copyTemplate, loadStore } from "@/lib/repository";
+import {
+  setTemplatePublic,
+  setTemplateStatus,
+  copyTemplate,
+  loadStore,
+} from "@/lib/repository";
 import { similarTemplates } from "@/lib/templates";
 import { selectionTypes, jobCategories } from "@/lib/types";
 import { initializeUser } from "@/lib/supabase";
@@ -254,16 +259,35 @@ export function Templates() {
         {items.map((t) => (
           <TemplateCard template={t} key={t.id} copyDisabled={bulkBusy}>
             {t.created_by_user_id === user && (
-              <Button
-                size="sm"
-                variant="ghost"
-                disabled={action.busy || (!t.public && !t.url)}
-                onClick={() =>
-                  action.run(() => setTemplatePublic(t.id, !t.public))
-                }
-              >
-                {t.public ? "非公開にする" : "公開する"}
-              </Button>
+              <>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  disabled={action.busy}
+                  onClick={() =>
+                    action.run(() =>
+                      setTemplateStatus(
+                        t.id,
+                        t.application_status === "closed" ? "open" : "closed",
+                      ),
+                    )
+                  }
+                >
+                  {t.application_status === "closed"
+                    ? "募集中に戻す"
+                    : "募集終了にする"}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  disabled={action.busy || (!t.public && !t.url)}
+                  onClick={() =>
+                    action.run(() => setTemplatePublic(t.id, !t.public))
+                  }
+                >
+                  {t.public ? "非公開にする" : "公開する"}
+                </Button>
+              </>
             )}
           </TemplateCard>
         ))}

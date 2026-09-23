@@ -81,14 +81,22 @@ export function eventsFromStore(store: Store): CalendarEvent[] {
       });
   };
   store.applications.forEach((a) => {
-    push(`${a.id}-open`, a.id, "応募開始", "応募開始", a.application_start);
+    push(
+      `${a.id}-open`,
+      a.id,
+      "応募開始",
+      "応募開始",
+      a.application_start,
+      a.application_status === "closed",
+    );
     push(
       `${a.id}-close`,
       a.id,
       "応募締切",
       "応募締切",
       a.application_deadline,
-      ["応募済", "選考中", "内定", "不合格", "辞退"].includes(a.status),
+      a.application_status === "closed" ||
+        ["応募済", "選考中", "内定", "不合格", "辞退"].includes(a.status),
     );
   });
   store.steps.forEach((s) => {

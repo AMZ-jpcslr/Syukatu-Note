@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Plus, CalendarDays, Check } from "lucide-react";
 import { useStore, useTemplates, useAction } from "./providers";
 import { applyTemplateDeadline, saveChild } from "@/lib/repository";
+import { deadlineLabel } from "@/lib/applications";
 import { deadlineChanged } from "@/lib/templates";
 import {
   eventsFromStore,
@@ -170,7 +171,7 @@ export function Dashboard() {
       ))}
       {items.length > 6 && (
         <Link href="/companies" className="panel-bottom-link">
-          残り{items.length - 6}社を見る
+          残り{items.length - 6}件の募集を見る
         </Link>
       )}
       {!items.length && <Empty text="まだ登録されていません" />}
@@ -270,7 +271,11 @@ export function Dashboard() {
         {appList(
           "応募予定企業",
           data.applications
-            .filter((a) => ["検討中", "応募予定"].includes(a.status))
+            .filter(
+              (a) =>
+                a.application_status !== "closed" &&
+                ["検討中", "応募予定"].includes(a.status),
+            )
             .sort((a, b) =>
               (a.application_deadline ?? "9999").localeCompare(
                 b.application_deadline ?? "9999",
@@ -355,8 +360,16 @@ export function Dashboard() {
               <div>
                 <strong>{a.company_name}：募集情報が更新されています</strong>
                 <small>
-                  コピー時 {a.copied_application_deadline ?? "未発表"} →
-                  公開募集 {t.application_deadline ?? "未発表"}
+                  コピー時{" "}
+                  {deadlineLabel(
+                    {
+                      application_deadline:
+                        a.copied_application_deadline ?? null,
+                      deadline_type: a.copied_deadline_type,
+                    },
+                    "yyyy-MM-dd",
+                  )}{" "}
+                  → 公開募集 {deadlineLabel(t, "yyyy-MM-dd")}
                 </small>
               </div>
               <Button
@@ -381,7 +394,7 @@ export function Dashboard() {
               <div key={s}>
                 <span>{s}</span>
                 <strong>
-                  {data.applications.filter((a) => a.status === s).length}社
+                  {data.applications.filter((a) => a.status === s).length}件
                 </strong>
               </div>
             ))}
@@ -397,7 +410,7 @@ export function Dashboard() {
                 <span>{p}</span>
                 <strong>
                   {data.applications.filter((a) => a.priority === p).length}
-                  <small>社</small>
+                  <small>件</small>
                 </strong>
               </div>
             ))}
@@ -419,7 +432,7 @@ export function Dashboard() {
                       (a) => (a.industry || "未設定") === i,
                     ).length
                   }
-                  社
+                  件
                 </strong>
               </div>
             ))}
@@ -433,7 +446,7 @@ export function Dashboard() {
         title="締切の更新を反映しますか？"
         description={
           update
-            ? `${update.a.company_name}：あなたの締切 ${update.a.application_deadline ?? "未発表"} を ${update.t.application_deadline ?? "未発表"} に変更します。`
+            ? `${update.a.company_name}：あなたの締切 ${deadlineLabel(update.a, "yyyy-MM-dd")} を ${deadlineLabel(update.t, "yyyy-MM-dd")} に変更します。`
             : ""
         }
       >

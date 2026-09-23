@@ -21,6 +21,7 @@ beforeAll(async () => {
     "202609220001_initial.sql",
     "202609220002_csv.sql",
     "202609220003_v11.sql",
+    "202609230004_capacity_deadlines.sql",
   ])
     await db.exec(readFileSync("supabase/migrations/" + file, "utf8"));
   await db.exec(
@@ -621,4 +622,95 @@ it("transfers linked selection tasks through both ownership foreign keys", async
   ).toBe(true);
   await as(A);
   expect((await db.query("select * from tasks")).rows).toHaveLength(0);
+});
+
+it("copies capacity deadlines and isolates personal and published closure state", async () => {
+  const template = (
+    await db.query<{ id: string }>("select publish_template($1::jsonb) as id", [
+      JSON.stringify({
+        company_name: "定員テスト",
+        graduation_year: 2028,
+        job_category: "企画",
+        position_name: "企画職",
+        selection_type: "本選考",
+        url: "https://example.com/jobs",
+        application_deadline: null,
+        deadline_type: "capacity",
+        application_status: "open",
+        public_flow: [],
+      }),
+    ])
+  ).rows[0].id;
+  await as(B);
+  const copy = (
+    await db.query<{ id: string }>("select copy_template($1) as id", [template])
+  ).rows[0].id;
+  expect(
+    (
+      await db.query(
+        "select deadline_type,copied_deadline_type,application_deadline,application_status from user_applications where id=$1",
+        [copy],
+      )
+    ).rows[0],
+  ).toEqual({
+    deadline_type: "capacity",
+    copied_deadline_type: "capacity",
+    application_deadline: null,
+    application_status: "open",
+  });
+  expect(
+    (
+      await db.query(
+        "update recruitment_templates set application_status='closed' where id=$1 returning id",
+        [template],
+      )
+    ).rows,
+  ).toHaveLength(0);
+  await db.query(
+    "update user_applications set application_status='closed',status='選考中' where id=$1",
+    [copy],
+  );
+  await as(A);
+  expect(
+    (
+      await db.query(
+        "select application_status from recruitment_templates where id=$1",
+        [template],
+      )
+    ).rows[0],
+  ).toEqual({ application_status: "open" });
+  await db.query(
+    "update recruitment_templates set application_status='closed' where id=$1",
+    [template],
+  );
+  await db.exec("reset role");
+  await db.query(
+    "update recruitment_templates set deadline_type='date',application_deadline='2028-10-10' where id=$1",
+    [template],
+  );
+  await as(B);
+  expect(
+    (
+      await db.query(
+        "select deadline_type,status from user_applications where id=$1",
+        [copy],
+      )
+    ).rows[0],
+  ).toEqual({ deadline_type: "capacity", status: "選考中" });
+  await db.query(
+    "select apply_template_deadline_details($1,'2028-10-10','date')",
+    [copy],
+  );
+  expect(
+    (
+      await db.query(
+        "select deadline_type,application_status,status from user_applications where id=$1",
+        [copy],
+      )
+    ).rows[0],
+  ).toEqual({
+    deadline_type: "date",
+    application_status: "closed",
+    status: "選考中",
+  });
 });

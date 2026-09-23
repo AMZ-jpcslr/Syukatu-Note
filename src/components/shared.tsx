@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowUpRight, CalendarDays, Loader2, AlertCircle } from "lucide-react";
 import { Button } from "./ui/button";
 import { displayDate, daysUntil } from "@/lib/dates";
+import type { Application } from "@/lib/types";
 import { cn } from "@/lib/utils";
 export function Loading() {
   return (
@@ -118,6 +119,22 @@ export function DueBadge({ date }: { date: string | null }) {
         </small>
       )}
       {days < 0 && <small>期限超過</small>}
+    </span>
+  );
+}
+export function ApplicationDeadline({
+  application: a,
+}: {
+  application: Application;
+}) {
+  if (a.application_status === "closed")
+    return <span className="tag">募集終了</span>;
+  return (
+    <span className="inline-flex flex-col gap-1 text-xs">
+      {a.deadline_type === "capacity" && <span>定員に達し次第終了</span>}
+      {(a.application_deadline || a.deadline_type !== "capacity") && (
+        <DueBadge date={a.application_deadline} />
+      )}
     </span>
   );
 }
