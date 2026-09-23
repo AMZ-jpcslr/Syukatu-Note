@@ -71,6 +71,15 @@ export function ChildForm({
       if (table === "selection_steps")
         row = {
           ...base,
+          deadline_value:
+            get("deadline") === (item as Step)?.deadline
+              ? ((item as Step)?.deadline_value ?? null)
+              : null,
+          scheduled_value:
+            toInstant(get("scheduled_at")) === (item as Step)?.scheduled_at
+              ? ((item as Step)?.scheduled_value ?? null)
+              : null,
+          calendar_enabled: (item as Step)?.calendar_enabled ?? true,
           title: get("title"),
           step_type: get("step_type") as Step["step_type"],
           deadline: get("deadline") || null,

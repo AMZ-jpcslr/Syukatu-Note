@@ -2,5 +2,103 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
   "buildCommand": "pnpm build",
-  "installCommand": "pnpm install --frozen-lockfile"
+  "installCommand": "pnpm install --frozen-lockfile",
+  "crons": [
+    {
+      "path": "/api/cron/recruitment-monitor",
+      "schedule": "15 0 * * *"
+    },
+    {
+      "path": "/api/cron/recruitment-monitor",
+      "schedule": "15 1 * * *"
+    },
+    {
+      "path": "/api/cron/recruitment-monitor",
+      "schedule": "15 2 * * *"
+    },
+    {
+      "path": "/api/cron/recruitment-monitor",
+      "schedule": "15 3 * * *"
+    },
+    {
+      "path": "/api/cron/recruitment-monitor",
+      "schedule": "15 4 * * *"
+    },
+    {
+      "path": "/api/cron/recruitment-monitor",
+      "schedule": "15 5 * * *"
+    },
+    {
+      "path": "/api/cron/recruitment-monitor",
+      "schedule": "15 6 * * *"
+    },
+    {
+      "path": "/api/cron/recruitment-monitor",
+      "schedule": "15 7 * * *"
+    },
+    {
+      "path": "/api/cron/recruitment-monitor",
+      "schedule": "15 8 * * *"
+    },
+    {
+      "path": "/api/cron/recruitment-monitor",
+      "schedule": "15 9 * * *"
+    },
+    {
+      "path": "/api/cron/recruitment-monitor",
+      "schedule": "15 10 * * *"
+    },
+    {
+      "path": "/api/cron/recruitment-monitor",
+      "schedule": "15 11 * * *"
+    },
+    {
+      "path": "/api/cron/recruitment-monitor",
+      "schedule": "15 12 * * *"
+    },
+    {
+      "path": "/api/cron/recruitment-monitor",
+      "schedule": "15 13 * * *"
+    },
+    {
+      "path": "/api/cron/recruitment-monitor",
+      "schedule": "15 14 * * *"
+    },
+    {
+      "path": "/api/cron/recruitment-monitor",
+      "schedule": "15 15 * * *"
+    },
+    {
+      "path": "/api/cron/recruitment-monitor",
+      "schedule": "15 16 * * *"
+    },
+    {
+      "path": "/api/cron/recruitment-monitor",
+      "schedule": "15 17 * * *"
+    },
+    {
+      "path": "/api/cron/recruitment-monitor",
+      "schedule": "15 18 * * *"
+    },
+    {
+      "path": "/api/cron/recruitment-monitor",
+      "schedule": "15 19 * * *"
+    },
+    {
+      "path": "/api/cron/recruitment-monitor",
+      "schedule": "15 20 * * *"
+    },
+    {
+      "path": "/api/cron/recruitment-monitor",
+      "schedule": "15 21 * * *"
+    },
+    {
+      "path": "/api/cron/recruitment-monitor",
+      "schedule": "15 22 * * *"
+    },
+    {
+      "path": "/api/cron/recruitment-monitor",
+      "schedule": "15 23 * * *"
+    }
+  ]
 }

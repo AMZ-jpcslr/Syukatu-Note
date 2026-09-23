@@ -13,7 +13,7 @@ async function as(user: string) {
 }
 beforeAll(async () => {
   db = new PGlite({ extensions: { pgcrypto } });
-  await db.exec(`create schema auth; create schema extensions; create role anon; create role authenticated;
+  await db.exec(`create schema auth; create schema extensions; create role anon; create role authenticated; create role service_role bypassrls;
  create table auth.users(id uuid primary key);
  create function auth.uid() returns uuid language sql stable as 'select nullif(current_setting(''request.jwt.claim.sub'',true),'''')::uuid';
  grant usage on schema auth,public to authenticated,anon; grant execute on function auth.uid() to authenticated,anon;`);
@@ -22,6 +22,7 @@ beforeAll(async () => {
     "202609220002_csv.sql",
     "202609220003_v11.sql",
     "202609230004_capacity_deadlines.sql",
+    "202609230005_recruitment_monitor.sql",
   ])
     await db.exec(readFileSync("supabase/migrations/" + file, "utf8"));
   await db.exec(
@@ -713,4 +714,407 @@ it("copies capacity deadlines and isolates personal and published closure state"
     application_status: "closed",
     status: "選考中",
   });
+});
+
+async function monitorFixture(privateSource = false) {
+  const t = (
+    await db.query<{ id: string }>("select publish_template($1::jsonb) as id", [
+      JSON.stringify({
+        company_name: "監視企業",
+        graduation_year: 2028,
+        job_category: "Software Engineer",
+        position_name: "28卒 SWE",
+        selection_type: "本選考",
+        url: "https://example.com/jobs",
+        application_deadline: null,
+        public_flow: [],
+      }),
+    ])
+  ).rows[0].id;
+  await db.exec("reset role");
+  const company = (
+    await db.query<{ company_id: string }>(
+      "select company_id from recruitment_templates where id=$1",
+      [t],
+    )
+  ).rows[0].company_id;
+  const source = (
+    await db.query<{ id: string }>(
+      "insert into company_sources(company_id,company_name,owner_user_id,source_type,url) values($1,'監視企業',$2,'recruitment','https://example.com/jobs') returning id",
+      [company, privateSource ? A : null],
+    )
+  ).rows[0].id;
+  const evidence = {
+    source_url: "https://example.com/jobs",
+    source_page_title: "28卒 SWE",
+    evidence_text: "締切 2026年10月16日正午",
+  };
+  const flow = [
+    {
+      title: "ES",
+      type: "ES",
+      deadline: "2026-10-10",
+      scheduled_at: null,
+      order_index: 0,
+      evidence,
+    },
+  ];
+  const raw = {
+    company_name: "監視企業",
+    graduation_year: 2028,
+    position_name: "28卒 SWE",
+    selection_type: "本選考",
+    application_deadline: "2026-10-16T12:00:00+09:00",
+    selection_steps: flow,
+  };
+  const diff = {
+    application_deadline: {
+      before: null,
+      after: raw.application_deadline,
+      evidence,
+    },
+    selection_steps: { before: [], after: flow, evidence },
+  };
+  const candidate = (
+    await db.query<{ id: string }>(
+      "insert into recruitment_update_candidates(company_id,template_id,source_id,owner_user_id,source_url,parser_type,raw_extracted_json,diff_json,confidence,fingerprint) values($1,$2,$3,$4,'https://example.com/jobs','rule',$5,$6,.9,'test') returning id",
+      [
+        company,
+        t,
+        source,
+        privateSource ? A : null,
+        JSON.stringify(raw),
+        JSON.stringify(diff),
+      ],
+    )
+  ).rows[0].id;
+  await as(A);
+  return { t, source, candidate, company, raw, diff };
+}
+it("only human-approved fields update a template and copies remain independent", async () => {
+  const f = await monitorFixture();
+  const copy = (
+    await db.query<{ id: string }>("select copy_template($1) as id", [f.t])
+  ).rows[0].id;
+  expect(
+    (
+      await db.query(
+        "select application_deadline from recruitment_templates where id=$1",
+        [f.t],
+      )
+    ).rows[0],
+  ).toEqual({ application_deadline: null });
+  await db.query(
+    "select review_recruitment_candidate($1,array['application_deadline'],'public',null,false,false)",
+    [f.candidate],
+  );
+  expect(
+    (
+      await db.query(
+        "select application_deadline_value,public_flow from recruitment_templates where id=$1",
+        [f.t],
+      )
+    ).rows[0],
+  ).toEqual({
+    application_deadline_value: "2026-10-16T12:00:00+09:00",
+    public_flow: [],
+  });
+  expect(
+    (
+      await db.query(
+        "select application_deadline from user_applications where id=$1",
+        [copy],
+      )
+    ).rows[0],
+  ).toEqual({ application_deadline: null });
+  expect(
+    (
+      await db.query(
+        "select status from recruitment_update_candidates where id=$1",
+        [f.candidate],
+      )
+    ).rows[0],
+  ).toEqual({ status: "partially_approved" });
+});
+it("anonymous users can import public candidates personally, create tasks and keep private details private", async () => {
+  const f = await monitorFixture();
+  await as(B);
+  const app = (
+    await db.query<{ id: string }>(
+      "select review_recruitment_candidate($1,array['application_deadline','selection_steps'],'personal',null,true,true) as id",
+      [f.candidate],
+    )
+  ).rows[0].id;
+  expect(
+    (
+      await db.query(
+        "select application_deadline_value,status from user_applications where id=$1",
+        [app],
+      )
+    ).rows[0],
+  ).toEqual({
+    application_deadline_value: "2026-10-16T12:00:00+09:00",
+    status: "応募予定",
+  });
+  expect(
+    (
+      await db.query(
+        "select title,due_date::text from tasks where user_application_id=$1",
+        [app],
+      )
+    ).rows[0],
+  ).toEqual({ title: "ES作成・提出", due_date: "2026-10-10" });
+  expect(
+    (
+      await db.query(
+        "select deadline_value,calendar_enabled from selection_steps where user_application_id=$1",
+        [app],
+      )
+    ).rows[0],
+  ).toEqual({ deadline_value: "2026-10-10", calendar_enabled: true });
+  await as(A);
+  expect(
+    (await db.query("select * from tasks where user_application_id=$1", [app]))
+      .rows,
+  ).toHaveLength(0);
+  expect(
+    (
+      await db.query(
+        "select application_deadline from recruitment_templates where id=$1",
+        [f.t],
+      )
+    ).rows[0],
+  ).toEqual({ application_deadline: null });
+});
+it("calendar/task opt-out is persisted", async () => {
+  const f = await monitorFixture();
+  const app = (
+    await db.query<{ id: string }>(
+      "select review_recruitment_candidate($1,array['application_deadline','selection_steps'],'personal',null,false,false) as id",
+      [f.candidate],
+    )
+  ).rows[0].id;
+  expect(
+    (
+      await db.query(
+        "select calendar_exclusions from user_applications where id=$1",
+        [app],
+      )
+    ).rows[0],
+  ).toEqual({ calendar_exclusions: ["application_deadline"] });
+  expect(
+    (await db.query("select * from tasks where user_application_id=$1", [app]))
+      .rows,
+  ).toHaveLength(0);
+  expect(
+    (
+      await db.query(
+        "select calendar_enabled from selection_steps where user_application_id=$1",
+        [app],
+      )
+    ).rows[0],
+  ).toEqual({ calendar_enabled: false });
+});
+it("blocks unauthorized public approval", async () => {
+  const f = await monitorFixture();
+  await as(B);
+  await expect(
+    db.query(
+      "select review_recruitment_candidate($1,array['application_deadline'],'public',null,false,false)",
+      [f.candidate],
+    ),
+  ).rejects.toThrow("権限");
+});
+it("private source candidates and snapshots cannot be read by another anonymous user", async () => {
+  const f = await monitorFixture(true);
+  await as(B);
+  expect(
+    (
+      await db.query(
+        "select * from recruitment_update_candidates where id=$1",
+        [f.candidate],
+      )
+    ).rows,
+  ).toHaveLength(0);
+  expect(
+    (await db.query("select * from company_sources where id=$1", [f.source]))
+      .rows,
+  ).toHaveLength(0);
+});
+it("blocks cohort reassignment during review", async () => {
+  const f = await monitorFixture();
+  await expect(
+    db.query(
+      "select review_recruitment_candidate($1,array['application_deadline'],'personal',null,false,false,null,2029)",
+      [f.candidate],
+    ),
+  ).rejects.toThrow("別年度");
+});
+it("stale public candidates cannot overwrite newer manual changes", async () => {
+  const f = await monitorFixture();
+  await db.exec("reset role");
+  await db.query(
+    "update recruitment_templates set application_deadline='2026-11-01' where id=$1",
+    [f.t],
+  );
+  await as(A);
+  await expect(
+    db.query(
+      "select review_recruitment_candidate($1,array['application_deadline'],'public',null,false,false)",
+      [f.candidate],
+    ),
+  ).rejects.toThrow("元の募集情報");
+});
+it("batch jobs use leases, completion stores only candidates, and retries deduplicate", async () => {
+  const f = await monitorFixture();
+  const j = (
+    await db.query<{ id: string }>(
+      "select request_recruitment_check($1) as id",
+      [f.source],
+    )
+  ).rows[0].id;
+  expect(
+    (
+      await db.query<{ id: string }>(
+        "select request_recruitment_check($1) as id",
+        [f.source],
+      )
+    ).rows[0].id,
+  ).toBe(j);
+  await db.exec("reset role");
+  const job = (
+    await db.query<{ lease_token: string }>(
+      "select * from claim_recruitment_job($1)",
+      [j],
+    )
+  ).rows[0];
+  expect(
+    (await db.query("select * from claim_recruitment_job($1)", [j])).rows,
+  ).toHaveLength(0);
+  await db.query("select complete_recruitment_job($1,$2,$3,$4,'success',1,0)", [
+    j,
+    job.lease_token,
+    JSON.stringify({
+      content_hash: "abc",
+      content_text: "public",
+      page_title: "title",
+      pages_json: [],
+    }),
+    JSON.stringify([
+      {
+        template_id: f.t,
+        source_url: "https://example.com/jobs",
+        parser_type: "rule",
+        raw_extracted_json: f.raw,
+        diff_json: f.diff,
+        confidence: 0.9,
+        important_update: true,
+        fingerprint: "test",
+      },
+    ]),
+  ]);
+  expect(
+    (
+      await db.query(
+        "select * from recruitment_update_candidates where source_id=$1",
+        [f.source],
+      )
+    ).rows,
+  ).toHaveLength(1);
+  expect(
+    (
+      await db.query(
+        "select * from company_source_snapshots where source_id=$1",
+        [f.source],
+      )
+    ).rows,
+  ).toHaveLength(1);
+  expect(
+    (
+      await db.query(
+        "select application_deadline from recruitment_templates where id=$1",
+        [f.t],
+      )
+    ).rows[0],
+  ).toEqual({ application_deadline: null });
+});
+it("50-company source seed is idempotent and preserves stored URLs", async () => {
+  await db.exec("reset role");
+  await db.exec(
+    readFileSync("supabase/seed.sql", "utf8")
+      .replace(/^begin;\r?$/m, "")
+      .replace(/^commit;\r?$/m, ""),
+  );
+  await db.exec(readFileSync("supabase/seed-recruitment-sources.sql", "utf8"));
+  await db.exec(readFileSync("supabase/seed-recruitment-sources.sql", "utf8"));
+  expect(
+    (
+      await db.query<{ n: number }>(
+        "select count(distinct company_id)::int n from company_sources where owner_user_id is null and company_id in(select id from companies where seed_key is not null)",
+      )
+    ).rows[0].n,
+  ).toBe(50);
+});
+
+it("transfers private monitored URLs, candidates and settings without losing duplicate-URL history", async () => {
+  const f = await monitorFixture(true);
+  await db.query(
+    "insert into company_source_settings(user_id,source_id,monitor_priority) values($1,$2,'high')",
+    [A, f.source],
+  );
+  const code = (
+    await db.query<{ code: string }>("select issue_transfer_code() code")
+  ).rows[0].code;
+  await as(B);
+  const other = (
+    await db.query<{ id: string }>(
+      "select add_company_source($1,'https://example.com/jobs','recruitment') id",
+      [f.company],
+    )
+  ).rows[0].id;
+  await db.query("select redeem_transfer_code($1)", [code]);
+  expect(
+    (
+      await db.query(
+        "select * from recruitment_update_candidates where id=$1",
+        [f.candidate],
+      )
+    ).rows,
+  ).toHaveLength(1);
+  expect(
+    (
+      await db.query(
+        "select source_id from recruitment_update_candidates where id=$1",
+        [f.candidate],
+      )
+    ).rows[0],
+  ).toEqual({ source_id: other });
+  await as(A);
+  expect(
+    (
+      await db.query(
+        "select * from recruitment_update_candidates where id=$1",
+        [f.candidate],
+      )
+    ).rows,
+  ).toHaveLength(0);
+});
+it("copying an approved public flow preserves its precise dates", async () => {
+  const f = await monitorFixture();
+  await db.query(
+    "select review_recruitment_candidate($1,array['selection_steps'],'public',null,false,false)",
+    [f.candidate],
+  );
+  await as(B);
+  const app = (
+    await db.query<{ id: string }>("select copy_template($1) id", [f.t])
+  ).rows[0].id;
+  expect(
+    (
+      await db.query(
+        "select deadline_value from selection_steps where user_application_id=$1",
+        [app],
+      )
+    ).rows[0],
+  ).toEqual({ deadline_value: "2026-10-10" });
 });

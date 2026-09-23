@@ -5,7 +5,7 @@ import { expect, it } from "vitest";
 it("upgrades a populated v1 database without changing identities or losing legacy records", async () => {
   const db = new PGlite({ extensions: { pgcrypto } });
   try {
-    await db.exec(`create schema auth; create schema extensions; create role anon; create role authenticated;
+    await db.exec(`create schema auth; create schema extensions; create role anon; create role authenticated; create role service_role bypassrls;
       create table auth.users(id uuid primary key);
       create function auth.uid() returns uuid language sql stable as 'select nullif(current_setting(''request.jwt.claim.sub'',true),'''')::uuid';
       grant usage on schema auth,public to authenticated,anon; grant execute on function auth.uid() to authenticated,anon;`);
@@ -40,6 +40,12 @@ it("upgrades a populated v1 database without changing identities or losing legac
     await db.exec(
       readFileSync(
         "supabase/migrations/202609230004_capacity_deadlines.sql",
+        "utf8",
+      ),
+    );
+    await db.exec(
+      readFileSync(
+        "supabase/migrations/202609230005_recruitment_monitor.sql",
         "utf8",
       ),
     );

@@ -1,4 +1,5 @@
 "use client";
+import { RecruitmentNotice } from "./recruitment-monitor";
 import Link from "next/link";
 import { useState } from "react";
 import { Plus, CalendarDays, Check } from "lucide-react";
@@ -195,6 +196,7 @@ export function Dashboard() {
           企業を追加
         </Button>
       </PageHeading>
+      <RecruitmentNotice />
       {!!overdue.length && (
         <Link href="/calendar" className="overdue-notice">
           期限超過の未完了予定が{overdue.length}

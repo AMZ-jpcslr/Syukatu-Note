@@ -552,3 +552,24 @@ test("capacity deadlines, manual closure and multiple roles grouped by company",
     status: "応募予定",
   });
 });
+
+test("monitoring review and settings remain usable without Gemini in demo", async ({
+  page,
+}) => {
+  const errors: string[] = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await page.goto("/templates/updates");
+  await expect(
+    page.getByRole("heading", { name: "募集情報の更新", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText(
+      "デモでは自動取得を実行しません。Supabase接続後に利用できます。",
+    ),
+  ).toBeVisible();
+  await page.goto("/settings");
+  await expect(
+    page.getByRole("heading", { name: "募集情報自動更新" }),
+  ).toBeVisible();
+  expect(errors).toEqual([]);
+});

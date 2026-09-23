@@ -145,12 +145,17 @@ export function SelectionFlow({
               <div className="flow-step-dates">
                 {s.deadline && (
                   <span>
-                    期限 <DueBadge date={s.deadline} />
+                    期限 <DueBadge date={s.deadline} />{" "}
+                    {s.deadline_value &&
+                      s.deadline_value.length > 10 &&
+                      jstTime(s.deadline_value)}
                   </span>
                 )}
-                {s.scheduled_at && (
+                {(s.scheduled_value || s.scheduled_at) && (
                   <span>
-                    {displayDate(s.scheduled_at)} {jstTime(s.scheduled_at)}
+                    {displayDate(s.scheduled_value ?? s.scheduled_at)}{" "}
+                    {(s.scheduled_value ?? s.scheduled_at ?? "").length > 10 &&
+                      jstTime(s.scheduled_value ?? s.scheduled_at!)}
                   </span>
                 )}
                 {s.result && <span>結果：{s.result}</span>}

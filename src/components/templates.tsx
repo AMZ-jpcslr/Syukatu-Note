@@ -118,6 +118,9 @@ export function Templates() {
   }
   return (
     <>
+      <Link className="text-link mb-3 inline-block" href="/templates/updates">
+        募集情報の更新を確認 →
+      </Link>
       <PageHeading
         eyebrow="SHARED KNOWLEDGE"
         title="募集を探す"

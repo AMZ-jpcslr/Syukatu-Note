@@ -147,7 +147,11 @@ export function TemplateCard({
         </div>
         <div>
           <dt>締切</dt>
-          <dd>{deadlineLabel(t)}</dd>
+          <dd>
+            {deadlineLabel(t)}{" "}
+            {t.application_deadline_value?.includes("T") &&
+              t.application_deadline_value.slice(11, 16)}
+          </dd>
         </div>
         <div>
           <dt>情報元</dt>

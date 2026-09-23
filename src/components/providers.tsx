@@ -51,6 +51,7 @@ export function useAction() {
       try {
         await action();
         await Promise.all([
+          q.invalidateQueries({ queryKey: ["recruitment-monitor"] }),
           q.invalidateQueries({ queryKey: ["store"] }),
           q.invalidateQueries({ queryKey: ["templates"] }),
         ]);

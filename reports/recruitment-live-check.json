@@ -1,0 +1,1037 @@
+[
+  {
+    "company": "Money Forward",
+    "url": "https://recruit.moneyforward.com/students/",
+    "checked_at": "2026-09-23T02:52:36.432Z",
+    "pages": [
+      {
+        "url": "https://recruit.moneyforward.com/students/",
+        "title": "新卒採用サイト - 株式会社マネーフォワード",
+        "characters": 4770
+      }
+    ],
+    "errors": [],
+    "candidates": [
+      {
+        "template_id": null,
+        "source_url": "https://recruit.moneyforward.com/students/",
+        "parser_type": "rule",
+        "raw_extracted_json": {
+          "company_name": "Money Forward",
+          "graduation_year": null,
+          "position_name": "新卒採用サイト - 株式会社マネーフォワード",
+          "job_category": null,
+          "selection_type": "インターン",
+          "application_status": "open",
+          "deadline_type": "date",
+          "application_start": null,
+          "application_deadline": null,
+          "event_start": null,
+          "event_end": null,
+          "source_url": "https://recruit.moneyforward.com/students/",
+          "selection_steps": [],
+          "eligibility": "将来的に、より多くのメンバーに部署異動やチャレンジの幅を広げられるよう、英語学習プログラムの対象者を増やしていく予定です。",
+          "notes": "マネーフォワードホーム株式会社 ソリューション推進部 部長/2018年新卒\n研修の中で特徴的なのは、役員が企画から関わり講師としても参加する「Leadership Forward Program」。次世代のリーダーを育成することを目的に、事業責任者クラス向けのAdvancedコース、マネジメントの基礎を学ぶBasicsコース(2024年新設)を用意しています。研修については、今後も新しいプログラムを準備予定です。\n3年を超えて同じ部署/同じ業務に従事しているメンバーを対象に、本人の中長期的なキャリア感や価値観を尊重した上で、会社から異動や役割変更の提案を行います。\n将来的に、より多くのメンバーに部署異動やチャレンジの幅を広げられるよう、英語学習プログラムの対象者を増やしていく予定です。\n締切日の記載は確認できませんでした",
+          "confidence": 0.25,
+          "warnings": [
+            "締切日の記載は確認できませんでした",
+            "卒年度を確認できませんでした。登録前に年度を確認してください",
+            "選考フローの記載を確認できませんでした"
+          ],
+          "evidence": {
+            "source_url": {
+              "source_url": "https://recruit.moneyforward.com/students/",
+              "source_page_title": "新卒採用サイト - 株式会社マネーフォワード",
+              "evidence_text": "新卒採用サイト - 株式会社マネーフォワード"
+            },
+            "position_name": {
+              "source_url": "https://recruit.moneyforward.com/students/",
+              "source_page_title": "新卒採用サイト - 株式会社マネーフォワード",
+              "evidence_text": "新卒採用サイト - 株式会社マネーフォワード"
+            },
+            "selection_type": {
+              "source_url": "https://recruit.moneyforward.com/students/",
+              "source_page_title": "新卒採用サイト - 株式会社マネーフォワード",
+              "evidence_text": "長期インターンシップ"
+            },
+            "application_status": {
+              "source_url": "https://recruit.moneyforward.com/students/",
+              "source_page_title": "新卒採用サイト - 株式会社マネーフォワード",
+              "evidence_text": "通年募集中"
+            },
+            "eligibility": {
+              "source_url": "https://recruit.moneyforward.com/students/",
+              "source_page_title": "新卒採用サイト - 株式会社マネーフォワード",
+              "evidence_text": "将来的に、より多くのメンバーに部署異動やチャレンジの幅を広げられるよう、英語学習プログラムの対象者を増やしていく予定です。"
+            },
+            "notes": {
+              "source_url": "https://recruit.moneyforward.com/students/",
+              "source_page_title": "新卒採用サイト - 株式会社マネーフォワード",
+              "evidence_text": "マネーフォワードホーム株式会社 ソリューション推進部 部長/2018年新卒\n研修の中で特徴的なのは、役員が企画から関わり講師としても参加する「Leadership Forward Program」。次世代のリーダーを育成することを目的に、事業責任者クラス向けのAdvancedコース、マネジメントの基礎を学ぶBasicsコース(2024年新設)を用意しています。研修については、今後も新しいプログラムを準備予定です。\n3年を超えて同じ部署/同じ業務に従事しているメンバーを対象に、本人の中長期的なキャリア感や価値観を尊重した上で、会社から異動や役割変更の提案を行います。\n将来的に、より多くのメンバーに部署異動やチャレンジの幅を広げられるよう、英語学習プログラムの対象者を増やしていく予定です。"
+            }
+          }
+        },
+        "diff_json": {
+          "position_name": {
+            "before": null,
+            "after": "新卒採用サイト - 株式会社マネーフォワード",
+            "evidence": {
+              "source_url": "https://recruit.moneyforward.com/students/",
+              "source_page_title": "新卒採用サイト - 株式会社マネーフォワード",
+              "evidence_text": "新卒採用サイト - 株式会社マネーフォワード"
+            }
+          },
+          "selection_type": {
+            "before": null,
+            "after": "インターン",
+            "evidence": {
+              "source_url": "https://recruit.moneyforward.com/students/",
+              "source_page_title": "新卒採用サイト - 株式会社マネーフォワード",
+              "evidence_text": "長期インターンシップ"
+            }
+          },
+          "application_status": {
+            "before": null,
+            "after": "open",
+            "evidence": {
+              "source_url": "https://recruit.moneyforward.com/students/",
+              "source_page_title": "新卒採用サイト - 株式会社マネーフォワード",
+              "evidence_text": "通年募集中"
+            }
+          },
+          "source_url": {
+            "before": null,
+            "after": "https://recruit.moneyforward.com/students/",
+            "evidence": {
+              "source_url": "https://recruit.moneyforward.com/students/",
+              "source_page_title": "新卒採用サイト - 株式会社マネーフォワード",
+              "evidence_text": "新卒採用サイト - 株式会社マネーフォワード"
+            }
+          },
+          "eligibility": {
+            "before": null,
+            "after": "将来的に、より多くのメンバーに部署異動やチャレンジの幅を広げられるよう、英語学習プログラムの対象者を増やしていく予定です。",
+            "evidence": {
+              "source_url": "https://recruit.moneyforward.com/students/",
+              "source_page_title": "新卒採用サイト - 株式会社マネーフォワード",
+              "evidence_text": "将来的に、より多くのメンバーに部署異動やチャレンジの幅を広げられるよう、英語学習プログラムの対象者を増やしていく予定です。"
+            }
+          },
+          "notes": {
+            "before": null,
+            "after": "マネーフォワードホーム株式会社 ソリューション推進部 部長/2018年新卒\n研修の中で特徴的なのは、役員が企画から関わり講師としても参加する「Leadership Forward Program」。次世代のリーダーを育成することを目的に、事業責任者クラス向けのAdvancedコース、マネジメントの基礎を学ぶBasicsコース(2024年新設)を用意しています。研修については、今後も新しいプログラムを準備予定です。\n3年を超えて同じ部署/同じ業務に従事しているメンバーを対象に、本人の中長期的なキャリア感や価値観を尊重した上で、会社から異動や役割変更の提案を行います。\n将来的に、より多くのメンバーに部署異動やチャレンジの幅を広げられるよう、英語学習プログラムの対象者を増やしていく予定です。\n締切日の記載は確認できませんでした",
+            "evidence": {
+              "source_url": "https://recruit.moneyforward.com/students/",
+              "source_page_title": "新卒採用サイト - 株式会社マネーフォワード",
+              "evidence_text": "マネーフォワードホーム株式会社 ソリューション推進部 部長/2018年新卒\n研修の中で特徴的なのは、役員が企画から関わり講師としても参加する「Leadership Forward Program」。次世代のリーダーを育成することを目的に、事業責任者クラス向けのAdvancedコース、マネジメントの基礎を学ぶBasicsコース(2024年新設)を用意しています。研修については、今後も新しいプログラムを準備予定です。\n3年を超えて同じ部署/同じ業務に従事しているメンバーを対象に、本人の中長期的なキャリア感や価値観を尊重した上で、会社から異動や役割変更の提案を行います。\n将来的に、より多くのメンバーに部署異動やチャレンジの幅を広げられるよう、英語学習プログラムの対象者を増やしていく予定です。"
+            }
+          }
+        },
+        "confidence": 0.25,
+        "important_update": false,
+        "fingerprint": "4f92a4e043932d37beb87756df1c5cd3e7f7b89ba342f64f95ad091be3a71577"
+      }
+    ],
+    "unchanged_skips_parsing": true
+  },
+  {
+    "company": "NEC",
+    "url": "https://jpn.nec.com/recruit/newgraduate/",
+    "checked_at": "2026-09-23T02:52:36.473Z",
+    "pages": [],
+    "errors": [
+      {
+        "url": "https://jpn.nec.com/recruit/newgraduate/",
+        "code": "robots_denied"
+      }
+    ],
+    "candidates": [],
+    "unchanged_skips_parsing": true
+  },
+  {
+    "company": "NTT東日本",
+    "url": "https://newgrad.ntt-east.co.jp/",
+    "checked_at": "2026-09-23T02:52:47.046Z",
+    "pages": [
+      {
+        "url": "https://newgrad.ntt-east.co.jp/",
+        "title": "NTT東日本株式会社 | 新卒採用サイト",
+        "characters": 2278
+      },
+      {
+        "url": "https://newgrad.ntt-east.co.jp/information/",
+        "title": "求人・採用情報 | NTT東日本新卒採用サイト",
+        "characters": 568
+      },
+      {
+        "url": "https://newgrad.ntt-east.co.jp/information/position.html",
+        "title": "募集要項 | NTT東日本新卒採用サイト",
+        "characters": 1663
+      },
+      {
+        "url": "https://newgrad.ntt-east.co.jp/information/message-hr.html",
+        "title": "就職活動中の皆さまへ | NTT東日本新卒採用サイト",
+        "characters": 4360
+      },
+      {
+        "url": "https://newgrad.ntt-east.co.jp/internship/",
+        "title": "インターンシップ | NTT東日本株式会社採用・募集",
+        "characters": 1910
+      }
+    ],
+    "errors": [],
+    "candidates": [
+      {
+        "template_id": null,
+        "source_url": "https://newgrad.ntt-east.co.jp/",
+        "parser_type": "rule",
+        "raw_extracted_json": {
+          "company_name": "NTT東日本",
+          "graduation_year": null,
+          "position_name": "NTT東日本株式会社 | 新卒採用サイト",
+          "job_category": null,
+          "selection_type": "本選考",
+          "application_status": "unknown",
+          "deadline_type": "date",
+          "application_start": null,
+          "application_deadline": null,
+          "event_start": null,
+          "event_end": null,
+          "source_url": "https://newgrad.ntt-east.co.jp/",
+          "selection_steps": [],
+          "eligibility": "新卒採用の応募資格や募集内容、選考方法など、エントリーにあたってご確認いただきたい募集要項をご案内します。",
+          "notes": "新卒採用の応募資格や募集内容、選考方法など、エントリーにあたってご確認いただきたい募集要項をご案内します。\n締切日の記載は確認できませんでした",
+          "confidence": 0.25,
+          "warnings": [
+            "締切日の記載は確認できませんでした",
+            "卒年度を確認できませんでした。登録前に年度を確認してください",
+            "選考フローの記載を確認できませんでした"
+          ],
+          "evidence": {
+            "source_url": {
+              "source_url": "https://newgrad.ntt-east.co.jp/",
+              "source_page_title": "NTT東日本株式会社 | 新卒採用サイト",
+              "evidence_text": "NTT東日本株式会社 | 新卒採用サイト"
+            },
+            "position_name": {
+              "source_url": "https://newgrad.ntt-east.co.jp/",
+              "source_page_title": "NTT東日本株式会社 | 新卒採用サイト",
+              "evidence_text": "NTT東日本株式会社 | 新卒採用サイト"
+            },
+            "selection_type": {
+              "source_url": "https://newgrad.ntt-east.co.jp/",
+              "source_page_title": "NTT東日本株式会社 | 新卒採用サイト",
+              "evidence_text": "NTT東日本株式会社 | 新卒採用サイト"
+            },
+            "eligibility": {
+              "source_url": "https://newgrad.ntt-east.co.jp/",
+              "source_page_title": "NTT東日本株式会社 | 新卒採用サイト",
+              "evidence_text": "新卒採用の応募資格や募集内容、選考方法など、エントリーにあたってご確認いただきたい募集要項をご案内します。"
+            },
+            "notes": {
+              "source_url": "https://newgrad.ntt-east.co.jp/",
+              "source_page_title": "NTT東日本株式会社 | 新卒採用サイト",
+              "evidence_text": "新卒採用の応募資格や募集内容、選考方法など、エントリーにあたってご確認いただきたい募集要項をご案内します。"
+            }
+          }
+        },
+        "diff_json": {
+          "position_name": {
+            "before": null,
+            "after": "NTT東日本株式会社 | 新卒採用サイト",
+            "evidence": {
+              "source_url": "https://newgrad.ntt-east.co.jp/",
+              "source_page_title": "NTT東日本株式会社 | 新卒採用サイト",
+              "evidence_text": "NTT東日本株式会社 | 新卒採用サイト"
+            }
+          },
+          "selection_type": {
+            "before": null,
+            "after": "本選考",
+            "evidence": {
+              "source_url": "https://newgrad.ntt-east.co.jp/",
+              "source_page_title": "NTT東日本株式会社 | 新卒採用サイト",
+              "evidence_text": "NTT東日本株式会社 | 新卒採用サイト"
+            }
+          },
+          "application_status": {
+            "before": null,
+            "after": "unknown",
+            "evidence": null
+          },
+          "source_url": {
+            "before": null,
+            "after": "https://newgrad.ntt-east.co.jp/",
+            "evidence": {
+              "source_url": "https://newgrad.ntt-east.co.jp/",
+              "source_page_title": "NTT東日本株式会社 | 新卒採用サイト",
+              "evidence_text": "NTT東日本株式会社 | 新卒採用サイト"
+            }
+          },
+          "eligibility": {
+            "before": null,
+            "after": "新卒採用の応募資格や募集内容、選考方法など、エントリーにあたってご確認いただきたい募集要項をご案内します。",
+            "evidence": {
+              "source_url": "https://newgrad.ntt-east.co.jp/",
+              "source_page_title": "NTT東日本株式会社 | 新卒採用サイト",
+              "evidence_text": "新卒採用の応募資格や募集内容、選考方法など、エントリーにあたってご確認いただきたい募集要項をご案内します。"
+            }
+          },
+          "notes": {
+            "before": null,
+            "after": "新卒採用の応募資格や募集内容、選考方法など、エントリーにあたってご確認いただきたい募集要項をご案内します。\n締切日の記載は確認できませんでした",
+            "evidence": {
+              "source_url": "https://newgrad.ntt-east.co.jp/",
+              "source_page_title": "NTT東日本株式会社 | 新卒採用サイト",
+              "evidence_text": "新卒採用の応募資格や募集内容、選考方法など、エントリーにあたってご確認いただきたい募集要項をご案内します。"
+            }
+          }
+        },
+        "confidence": 0.25,
+        "important_update": false,
+        "fingerprint": "aeb494379dceba8c6d723f6439ded280183e3a91aeea2bd244c980b4202b5cd8"
+      },
+      {
+        "template_id": null,
+        "source_url": "https://newgrad.ntt-east.co.jp/information/",
+        "parser_type": "rule",
+        "raw_extracted_json": {
+          "company_name": "NTT東日本",
+          "graduation_year": null,
+          "position_name": "求人・採用情報 | NTT東日本新卒採用サイト",
+          "job_category": null,
+          "selection_type": "本選考",
+          "application_status": "unknown",
+          "deadline_type": "date",
+          "application_start": null,
+          "application_deadline": null,
+          "event_start": null,
+          "event_end": null,
+          "source_url": "https://newgrad.ntt-east.co.jp/information/",
+          "selection_steps": [],
+          "eligibility": "新卒採用の応募資格や募集内容、選考方法など、エントリーにあたってご確認いただきたい募集要項をご案内します。",
+          "notes": "新卒採用の応募資格や募集内容、選考方法など、エントリーにあたってご確認いただきたい募集要項をご案内します。\n締切日の記載は確認できませんでした",
+          "confidence": 0.25,
+          "warnings": [
+            "締切日の記載は確認できませんでした",
+            "卒年度を確認できませんでした。登録前に年度を確認してください",
+            "選考フローの記載を確認できませんでした"
+          ],
+          "evidence": {
+            "source_url": {
+              "source_url": "https://newgrad.ntt-east.co.jp/information/",
+              "source_page_title": "求人・採用情報 | NTT東日本新卒採用サイト",
+              "evidence_text": "求人・採用情報 | NTT東日本新卒採用サイト"
+            },
+            "position_name": {
+              "source_url": "https://newgrad.ntt-east.co.jp/information/",
+              "source_page_title": "求人・採用情報 | NTT東日本新卒採用サイト",
+              "evidence_text": "求人・採用情報 | NTT東日本新卒採用サイト"
+            },
+            "selection_type": {
+              "source_url": "https://newgrad.ntt-east.co.jp/information/",
+              "source_page_title": "求人・採用情報 | NTT東日本新卒採用サイト",
+              "evidence_text": "求人・採用情報 | NTT東日本新卒採用サイト"
+            },
+            "eligibility": {
+              "source_url": "https://newgrad.ntt-east.co.jp/information/",
+              "source_page_title": "求人・採用情報 | NTT東日本新卒採用サイト",
+              "evidence_text": "新卒採用の応募資格や募集内容、選考方法など、エントリーにあたってご確認いただきたい募集要項をご案内します。"
+            },
+            "notes": {
+              "source_url": "https://newgrad.ntt-east.co.jp/information/",
+              "source_page_title": "求人・採用情報 | NTT東日本新卒採用サイト",
+              "evidence_text": "新卒採用の応募資格や募集内容、選考方法など、エントリーにあたってご確認いただきたい募集要項をご案内します。"
+            }
+          }
+        },
+        "diff_json": {
+          "position_name": {
+            "before": null,
+            "after": "求人・採用情報 | NTT東日本新卒採用サイト",
+            "evidence": {
+              "source_url": "https://newgrad.ntt-east.co.jp/information/",
+              "source_page_title": "求人・採用情報 | NTT東日本新卒採用サイト",
+              "evidence_text": "求人・採用情報 | NTT東日本新卒採用サイト"
+            }
+          },
+          "selection_type": {
+            "before": null,
+            "after": "本選考",
+            "evidence": {
+              "source_url": "https://newgrad.ntt-east.co.jp/information/",
+              "source_page_title": "求人・採用情報 | NTT東日本新卒採用サイト",
+              "evidence_text": "求人・採用情報 | NTT東日本新卒採用サイト"
+            }
+          },
+          "application_status": {
+            "before": null,
+            "after": "unknown",
+            "evidence": null
+          },
+          "source_url": {
+            "before": null,
+            "after": "https://newgrad.ntt-east.co.jp/information/",
+            "evidence": {
+              "source_url": "https://newgrad.ntt-east.co.jp/information/",
+              "source_page_title": "求人・採用情報 | NTT東日本新卒採用サイト",
+              "evidence_text": "求人・採用情報 | NTT東日本新卒採用サイト"
+            }
+          },
+          "eligibility": {
+            "before": null,
+            "after": "新卒採用の応募資格や募集内容、選考方法など、エントリーにあたってご確認いただきたい募集要項をご案内します。",
+            "evidence": {
+              "source_url": "https://newgrad.ntt-east.co.jp/information/",
+              "source_page_title": "求人・採用情報 | NTT東日本新卒採用サイト",
+              "evidence_text": "新卒採用の応募資格や募集内容、選考方法など、エントリーにあたってご確認いただきたい募集要項をご案内します。"
+            }
+          },
+          "notes": {
+            "before": null,
+            "after": "新卒採用の応募資格や募集内容、選考方法など、エントリーにあたってご確認いただきたい募集要項をご案内します。\n締切日の記載は確認できませんでした",
+            "evidence": {
+              "source_url": "https://newgrad.ntt-east.co.jp/information/",
+              "source_page_title": "求人・採用情報 | NTT東日本新卒採用サイト",
+              "evidence_text": "新卒採用の応募資格や募集内容、選考方法など、エントリーにあたってご確認いただきたい募集要項をご案内します。"
+            }
+          }
+        },
+        "confidence": 0.25,
+        "important_update": false,
+        "fingerprint": "260a10c56fba6f549d907dfef92d20358cdcdde501e73af90c10cc04533fe448"
+      },
+      {
+        "template_id": null,
+        "source_url": "https://newgrad.ntt-east.co.jp/information/position.html",
+        "parser_type": "rule",
+        "raw_extracted_json": {
+          "company_name": "NTT東日本",
+          "graduation_year": null,
+          "position_name": "募集要項 | NTT東日本新卒採用サイト",
+          "job_category": null,
+          "selection_type": "本選考",
+          "application_status": "unknown",
+          "deadline_type": "date",
+          "application_start": null,
+          "application_deadline": null,
+          "event_start": null,
+          "event_end": null,
+          "source_url": "https://newgrad.ntt-east.co.jp/information/position.html",
+          "selection_steps": [],
+          "eligibility": "応募資格 | ・2026年4月~2027年3月に四年制大学、短期大学、高等専門学校、専門学校を卒業見込み、または大学院を修了見込みの方",
+          "notes": "応募資格 | ・2026年4月~2027年3月に四年制大学、短期大学、高等専門学校、専門学校を卒業見込み、または大学院を修了見込みの方\n・2024年4月~2026年3月に四年制大学、短期大学、高等専門学校、専門学校を卒業、または大学院を修了し、その後正社員として就労経験のない方 |\n※2026年4月に入社した方が対象となります\n締切日の記載は確認できませんでした",
+          "confidence": 0.25,
+          "warnings": [
+            "締切日の記載は確認できませんでした",
+            "卒年度を確認できませんでした。登録前に年度を確認してください",
+            "選考フローの記載を確認できませんでした"
+          ],
+          "evidence": {
+            "source_url": {
+              "source_url": "https://newgrad.ntt-east.co.jp/information/position.html",
+              "source_page_title": "募集要項 | NTT東日本新卒採用サイト",
+              "evidence_text": "募集要項 | NTT東日本新卒採用サイト"
+            },
+            "position_name": {
+              "source_url": "https://newgrad.ntt-east.co.jp/information/position.html",
+              "source_page_title": "募集要項 | NTT東日本新卒採用サイト",
+              "evidence_text": "募集要項 | NTT東日本新卒採用サイト"
+            },
+            "selection_type": {
+              "source_url": "https://newgrad.ntt-east.co.jp/information/position.html",
+              "source_page_title": "募集要項 | NTT東日本新卒採用サイト",
+              "evidence_text": "募集要項 | NTT東日本新卒採用サイト"
+            },
+            "eligibility": {
+              "source_url": "https://newgrad.ntt-east.co.jp/information/position.html",
+              "source_page_title": "募集要項 | NTT東日本新卒採用サイト",
+              "evidence_text": "応募資格 | ・2026年4月~2027年3月に四年制大学、短期大学、高等専門学校、専門学校を卒業見込み、または大学院を修了見込みの方"
+            },
+            "notes": {
+              "source_url": "https://newgrad.ntt-east.co.jp/information/position.html",
+              "source_page_title": "募集要項 | NTT東日本新卒採用サイト",
+              "evidence_text": "応募資格 | ・2026年4月~2027年3月に四年制大学、短期大学、高等専門学校、専門学校を卒業見込み、または大学院を修了見込みの方\n・2024年4月~2026年3月に四年制大学、短期大学、高等専門学校、専門学校を卒業、または大学院を修了し、その後正社員として就労経験のない方 |\n※2026年4月に入社した方が対象となります"
+            }
+          }
+        },
+        "diff_json": {
+          "position_name": {
+            "before": null,
+            "after": "募集要項 | NTT東日本新卒採用サイト",
+            "evidence": {
+              "source_url": "https://newgrad.ntt-east.co.jp/information/position.html",
+              "source_page_title": "募集要項 | NTT東日本新卒採用サイト",
+              "evidence_text": "募集要項 | NTT東日本新卒採用サイト"
+            }
+          },
+          "selection_type": {
+            "before": null,
+            "after": "本選考",
+            "evidence": {
+              "source_url": "https://newgrad.ntt-east.co.jp/information/position.html",
+              "source_page_title": "募集要項 | NTT東日本新卒採用サイト",
+              "evidence_text": "募集要項 | NTT東日本新卒採用サイト"
+            }
+          },
+          "application_status": {
+            "before": null,
+            "after": "unknown",
+            "evidence": null
+          },
+          "source_url": {
+            "before": null,
+            "after": "https://newgrad.ntt-east.co.jp/information/position.html",
+            "evidence": {
+              "source_url": "https://newgrad.ntt-east.co.jp/information/position.html",
+              "source_page_title": "募集要項 | NTT東日本新卒採用サイト",
+              "evidence_text": "募集要項 | NTT東日本新卒採用サイト"
+            }
+          },
+          "eligibility": {
+            "before": null,
+            "after": "応募資格 | ・2026年4月~2027年3月に四年制大学、短期大学、高等専門学校、専門学校を卒業見込み、または大学院を修了見込みの方",
+            "evidence": {
+              "source_url": "https://newgrad.ntt-east.co.jp/information/position.html",
+              "source_page_title": "募集要項 | NTT東日本新卒採用サイト",
+              "evidence_text": "応募資格 | ・2026年4月~2027年3月に四年制大学、短期大学、高等専門学校、専門学校を卒業見込み、または大学院を修了見込みの方"
+            }
+          },
+          "notes": {
+            "before": null,
+            "after": "応募資格 | ・2026年4月~2027年3月に四年制大学、短期大学、高等専門学校、専門学校を卒業見込み、または大学院を修了見込みの方\n・2024年4月~2026年3月に四年制大学、短期大学、高等専門学校、専門学校を卒業、または大学院を修了し、その後正社員として就労経験のない方 |\n※2026年4月に入社した方が対象となります\n締切日の記載は確認できませんでした",
+            "evidence": {
+              "source_url": "https://newgrad.ntt-east.co.jp/information/position.html",
+              "source_page_title": "募集要項 | NTT東日本新卒採用サイト",
+              "evidence_text": "応募資格 | ・2026年4月~2027年3月に四年制大学、短期大学、高等専門学校、専門学校を卒業見込み、または大学院を修了見込みの方\n・2024年4月~2026年3月に四年制大学、短期大学、高等専門学校、専門学校を卒業、または大学院を修了し、その後正社員として就労経験のない方 |\n※2026年4月に入社した方が対象となります"
+            }
+          }
+        },
+        "confidence": 0.25,
+        "important_update": false,
+        "fingerprint": "553ea91defed79d43a4fe934c45e00848f42becd86851374f5f4ef5794028a5c"
+      },
+      {
+        "template_id": null,
+        "source_url": "https://newgrad.ntt-east.co.jp/information/message-hr.html",
+        "parser_type": "rule",
+        "raw_extracted_json": {
+          "company_name": "NTT東日本",
+          "graduation_year": null,
+          "position_name": "就職活動中の皆さまへ | NTT東日本新卒採用サイト",
+          "job_category": null,
+          "selection_type": "インターン",
+          "application_status": "unknown",
+          "deadline_type": "date",
+          "application_start": null,
+          "application_deadline": null,
+          "event_start": null,
+          "event_end": null,
+          "source_url": "https://newgrad.ntt-east.co.jp/information/message-hr.html",
+          "selection_steps": [],
+          "eligibility": null,
+          "notes": "例えば、朝、家族や友人、恋人に「おはよう、行ってらっしゃい」とメッセージを送りあえること。リモート会議が予定通り始まり、問題の解決方法や次のアクションが決まること。コンビニでキャッシュレス決済が当たり前に使えること。病院で診療を受けられること。災害時にも大切な人と連絡が取れるように当たり前に昼夜問わず復旧にあたる会社がいる安心。\n締切日の記載は確認できませんでした",
+          "confidence": 0.25,
+          "warnings": [
+            "締切日の記載は確認できませんでした",
+            "卒年度を確認できませんでした。登録前に年度を確認してください",
+            "選考フローの記載を確認できませんでした"
+          ],
+          "evidence": {
+            "source_url": {
+              "source_url": "https://newgrad.ntt-east.co.jp/information/message-hr.html",
+              "source_page_title": "就職活動中の皆さまへ | NTT東日本新卒採用サイト",
+              "evidence_text": "就職活動中の皆さまへ | NTT東日本新卒採用サイト"
+            },
+            "position_name": {
+              "source_url": "https://newgrad.ntt-east.co.jp/information/message-hr.html",
+              "source_page_title": "就職活動中の皆さまへ | NTT東日本新卒採用サイト",
+              "evidence_text": "就職活動中の皆さまへ | NTT東日本新卒採用サイト"
+            },
+            "selection_type": {
+              "source_url": "https://newgrad.ntt-east.co.jp/information/message-hr.html",
+              "source_page_title": "就職活動中の皆さまへ | NTT東日本新卒採用サイト",
+              "evidence_text": "学生の皆さまがNTT東日本の新卒採用に興味を持っていただき、インターンや選考を通じてお会いできた際には、就職活動中だからこそ改めて見つめ直して気づいた皆さまの1つ1つの葛藤、その裏にある思いを是非教えてください。"
+            },
+            "notes": {
+              "source_url": "https://newgrad.ntt-east.co.jp/information/message-hr.html",
+              "source_page_title": "就職活動中の皆さまへ | NTT東日本新卒採用サイト",
+              "evidence_text": "例えば、朝、家族や友人、恋人に「おはよう、行ってらっしゃい」とメッセージを送りあえること。リモート会議が予定通り始まり、問題の解決方法や次のアクションが決まること。コンビニでキャッシュレス決済が当たり前に使えること。病院で診療を受けられること。災害時にも大切な人と連絡が取れるように当たり前に昼夜問わず復旧にあたる会社がいる安心。"
+            }
+          }
+        },
+        "diff_json": {
+          "position_name": {
+            "before": null,
+            "after": "就職活動中の皆さまへ | NTT東日本新卒採用サイト",
+            "evidence": {
+              "source_url": "https://newgrad.ntt-east.co.jp/information/message-hr.html",
+              "source_page_title": "就職活動中の皆さまへ | NTT東日本新卒採用サイト",
+              "evidence_text": "就職活動中の皆さまへ | NTT東日本新卒採用サイト"
+            }
+          },
+          "selection_type": {
+            "before": null,
+            "after": "インターン",
+            "evidence": {
+              "source_url": "https://newgrad.ntt-east.co.jp/information/message-hr.html",
+              "source_page_title": "就職活動中の皆さまへ | NTT東日本新卒採用サイト",
+              "evidence_text": "学生の皆さまがNTT東日本の新卒採用に興味を持っていただき、インターンや選考を通じてお会いできた際には、就職活動中だからこそ改めて見つめ直して気づいた皆さまの1つ1つの葛藤、その裏にある思いを是非教えてください。"
+            }
+          },
+          "application_status": {
+            "before": null,
+            "after": "unknown",
+            "evidence": null
+          },
+          "source_url": {
+            "before": null,
+            "after": "https://newgrad.ntt-east.co.jp/information/message-hr.html",
+            "evidence": {
+              "source_url": "https://newgrad.ntt-east.co.jp/information/message-hr.html",
+              "source_page_title": "就職活動中の皆さまへ | NTT東日本新卒採用サイト",
+              "evidence_text": "就職活動中の皆さまへ | NTT東日本新卒採用サイト"
+            }
+          },
+          "notes": {
+            "before": null,
+            "after": "例えば、朝、家族や友人、恋人に「おはよう、行ってらっしゃい」とメッセージを送りあえること。リモート会議が予定通り始まり、問題の解決方法や次のアクションが決まること。コンビニでキャッシュレス決済が当たり前に使えること。病院で診療を受けられること。災害時にも大切な人と連絡が取れるように当たり前に昼夜問わず復旧にあたる会社がいる安心。\n締切日の記載は確認できませんでした",
+            "evidence": {
+              "source_url": "https://newgrad.ntt-east.co.jp/information/message-hr.html",
+              "source_page_title": "就職活動中の皆さまへ | NTT東日本新卒採用サイト",
+              "evidence_text": "例えば、朝、家族や友人、恋人に「おはよう、行ってらっしゃい」とメッセージを送りあえること。リモート会議が予定通り始まり、問題の解決方法や次のアクションが決まること。コンビニでキャッシュレス決済が当たり前に使えること。病院で診療を受けられること。災害時にも大切な人と連絡が取れるように当たり前に昼夜問わず復旧にあたる会社がいる安心。"
+            }
+          }
+        },
+        "confidence": 0.25,
+        "important_update": false,
+        "fingerprint": "4ccb5005d366ee4f2cab18fb4d2c02f791f59b7255a080fbcd1abaaaa69d3356"
+      },
+      {
+        "template_id": null,
+        "source_url": "https://newgrad.ntt-east.co.jp/internship/",
+        "parser_type": "rule",
+        "raw_extracted_json": {
+          "company_name": "NTT東日本",
+          "graduation_year": 2028,
+          "position_name": "インターンシップ | NTT東日本株式会社採用・募集",
+          "job_category": null,
+          "selection_type": "インターン",
+          "application_status": "open",
+          "deadline_type": "date",
+          "application_start": "2026-09-11",
+          "application_deadline": "2026-10-16",
+          "event_start": null,
+          "event_end": null,
+          "source_url": "https://newgrad.ntt-east.co.jp/internship/",
+          "selection_steps": [],
+          "eligibility": null,
+          "notes": "インターンシップのエントリーはマイページからお願いします!\nマイページの登録はこちら\n2028年卒向け インターンシップスケジュール\n※スケジュールは参加するインターンシップのコースにより異なります。詳細はマイページからご連絡いたします。\n※スケジュールは変更になる可能性がございます。詳細はマイページからご連絡いたします。",
+          "confidence": 0.75,
+          "warnings": [
+            "詳細はMyPage内で確認が必要です",
+            "選考フローの記載を確認できませんでした"
+          ],
+          "evidence": {
+            "source_url": {
+              "source_url": "https://newgrad.ntt-east.co.jp/internship/",
+              "source_page_title": "インターンシップ | NTT東日本株式会社採用・募集",
+              "evidence_text": "インターンシップ | NTT東日本株式会社採用・募集"
+            },
+            "graduation_year": {
+              "source_url": "https://newgrad.ntt-east.co.jp/internship/",
+              "source_page_title": "インターンシップ | NTT東日本株式会社採用・募集",
+              "evidence_text": "インターンシップ | NTT東日本株式会社採用・募集\nインターンシップ | NTT東日本株式会社採用・募集\n2028年卒向け インターンシップスケジュール"
+            },
+            "position_name": {
+              "source_url": "https://newgrad.ntt-east.co.jp/internship/",
+              "source_page_title": "インターンシップ | NTT東日本株式会社採用・募集",
+              "evidence_text": "インターンシップ | NTT東日本株式会社採用・募集"
+            },
+            "selection_type": {
+              "source_url": "https://newgrad.ntt-east.co.jp/internship/",
+              "source_page_title": "インターンシップ | NTT東日本株式会社採用・募集",
+              "evidence_text": "インターンシップ | NTT東日本株式会社採用・募集"
+            },
+            "application_status": {
+              "source_url": "https://newgrad.ntt-east.co.jp/internship/",
+              "source_page_title": "インターンシップ | NTT東日本株式会社採用・募集",
+              "evidence_text": "冬季インターンシップ受付中"
+            },
+            "application_start": {
+              "source_url": "https://newgrad.ntt-east.co.jp/internship/",
+              "source_page_title": "インターンシップ | NTT東日本株式会社採用・募集",
+              "evidence_text": "エントリー受付期間(全コース共通) 2026年9月11日~10月16日"
+            },
+            "application_deadline": {
+              "source_url": "https://newgrad.ntt-east.co.jp/internship/",
+              "source_page_title": "インターンシップ | NTT東日本株式会社採用・募集",
+              "evidence_text": "エントリー受付期間(全コース共通) 2026年9月11日~10月16日"
+            },
+            "notes": {
+              "source_url": "https://newgrad.ntt-east.co.jp/internship/",
+              "source_page_title": "インターンシップ | NTT東日本株式会社採用・募集",
+              "evidence_text": "インターンシップのエントリーはマイページからお願いします!\nマイページの登録はこちら\n2028年卒向け インターンシップスケジュール\n※スケジュールは参加するインターンシップのコースにより異なります。詳細はマイページからご連絡いたします。\n※スケジュールは変更になる可能性がございます。詳細はマイページからご連絡いたします。"
+            }
+          }
+        },
+        "diff_json": {
+          "position_name": {
+            "before": null,
+            "after": "インターンシップ | NTT東日本株式会社採用・募集",
+            "evidence": {
+              "source_url": "https://newgrad.ntt-east.co.jp/internship/",
+              "source_page_title": "インターンシップ | NTT東日本株式会社採用・募集",
+              "evidence_text": "インターンシップ | NTT東日本株式会社採用・募集"
+            }
+          },
+          "selection_type": {
+            "before": null,
+            "after": "インターン",
+            "evidence": {
+              "source_url": "https://newgrad.ntt-east.co.jp/internship/",
+              "source_page_title": "インターンシップ | NTT東日本株式会社採用・募集",
+              "evidence_text": "インターンシップ | NTT東日本株式会社採用・募集"
+            }
+          },
+          "application_status": {
+            "before": null,
+            "after": "open",
+            "evidence": {
+              "source_url": "https://newgrad.ntt-east.co.jp/internship/",
+              "source_page_title": "インターンシップ | NTT東日本株式会社採用・募集",
+              "evidence_text": "冬季インターンシップ受付中"
+            }
+          },
+          "deadline_type": {
+            "before": null,
+            "after": "date",
+            "evidence": null
+          },
+          "application_start": {
+            "before": null,
+            "after": "2026-09-11",
+            "evidence": {
+              "source_url": "https://newgrad.ntt-east.co.jp/internship/",
+              "source_page_title": "インターンシップ | NTT東日本株式会社採用・募集",
+              "evidence_text": "エントリー受付期間(全コース共通) 2026年9月11日~10月16日"
+            }
+          },
+          "application_deadline": {
+            "before": null,
+            "after": "2026-10-16",
+            "evidence": {
+              "source_url": "https://newgrad.ntt-east.co.jp/internship/",
+              "source_page_title": "インターンシップ | NTT東日本株式会社採用・募集",
+              "evidence_text": "エントリー受付期間(全コース共通) 2026年9月11日~10月16日"
+            }
+          },
+          "source_url": {
+            "before": null,
+            "after": "https://newgrad.ntt-east.co.jp/internship/",
+            "evidence": {
+              "source_url": "https://newgrad.ntt-east.co.jp/internship/",
+              "source_page_title": "インターンシップ | NTT東日本株式会社採用・募集",
+              "evidence_text": "インターンシップ | NTT東日本株式会社採用・募集"
+            }
+          },
+          "notes": {
+            "before": null,
+            "after": "インターンシップのエントリーはマイページからお願いします!\nマイページの登録はこちら\n2028年卒向け インターンシップスケジュール\n※スケジュールは参加するインターンシップのコースにより異なります。詳細はマイページからご連絡いたします。\n※スケジュールは変更になる可能性がございます。詳細はマイページからご連絡いたします。",
+            "evidence": {
+              "source_url": "https://newgrad.ntt-east.co.jp/internship/",
+              "source_page_title": "インターンシップ | NTT東日本株式会社採用・募集",
+              "evidence_text": "インターンシップのエントリーはマイページからお願いします!\nマイページの登録はこちら\n2028年卒向け インターンシップスケジュール\n※スケジュールは参加するインターンシップのコースにより異なります。詳細はマイページからご連絡いたします。\n※スケジュールは変更になる可能性がございます。詳細はマイページからご連絡いたします。"
+            }
+          }
+        },
+        "confidence": 0.75,
+        "important_update": true,
+        "fingerprint": "4c1bf866485caf2e6ad273e462009e7779c0138bf331d90f08c2a90f3f70f17d"
+      },
+      {
+        "template_id": null,
+        "source_url": "https://newgrad.ntt-east.co.jp/internship/",
+        "parser_type": "rule",
+        "raw_extracted_json": {
+          "company_name": "NTT東日本",
+          "graduation_year": 2028,
+          "position_name": "セキュリティエンジニアコース",
+          "job_category": "Security",
+          "selection_type": "インターン",
+          "application_status": "unknown",
+          "deadline_type": "date",
+          "application_start": null,
+          "application_deadline": null,
+          "event_start": null,
+          "event_end": null,
+          "source_url": "https://newgrad.ntt-east.co.jp/internship/",
+          "selection_steps": [],
+          "eligibility": null,
+          "notes": "締切日の記載は確認できませんでした",
+          "confidence": 0.55,
+          "warnings": [
+            "締切日の記載は確認できませんでした",
+            "選考フローの記載を確認できませんでした"
+          ],
+          "evidence": {
+            "source_url": {
+              "source_url": "https://newgrad.ntt-east.co.jp/internship/",
+              "source_page_title": "インターンシップ | NTT東日本株式会社採用・募集",
+              "evidence_text": "セキュリティエンジニアコース"
+            },
+            "graduation_year": {
+              "source_url": "https://newgrad.ntt-east.co.jp/internship/",
+              "source_page_title": "インターンシップ | NTT東日本株式会社採用・募集",
+              "evidence_text": "インターンシップ | NTT東日本株式会社採用・募集\nセキュリティエンジニアコース"
+            },
+            "position_name": {
+              "source_url": "https://newgrad.ntt-east.co.jp/internship/",
+              "source_page_title": "インターンシップ | NTT東日本株式会社採用・募集",
+              "evidence_text": "セキュリティエンジニアコース"
+            },
+            "job_category": {
+              "source_url": "https://newgrad.ntt-east.co.jp/internship/",
+              "source_page_title": "インターンシップ | NTT東日本株式会社採用・募集",
+              "evidence_text": "セキュリティエンジニアコース"
+            },
+            "selection_type": {
+              "source_url": "https://newgrad.ntt-east.co.jp/internship/",
+              "source_page_title": "インターンシップ | NTT東日本株式会社採用・募集",
+              "evidence_text": "職場型インターンシップ"
+            }
+          }
+        },
+        "diff_json": {
+          "position_name": {
+            "before": null,
+            "after": "セキュリティエンジニアコース",
+            "evidence": {
+              "source_url": "https://newgrad.ntt-east.co.jp/internship/",
+              "source_page_title": "インターンシップ | NTT東日本株式会社採用・募集",
+              "evidence_text": "セキュリティエンジニアコース"
+            }
+          },
+          "job_category": {
+            "before": null,
+            "after": "Security",
+            "evidence": {
+              "source_url": "https://newgrad.ntt-east.co.jp/internship/",
+              "source_page_title": "インターンシップ | NTT東日本株式会社採用・募集",
+              "evidence_text": "セキュリティエンジニアコース"
+            }
+          },
+          "selection_type": {
+            "before": null,
+            "after": "インターン",
+            "evidence": {
+              "source_url": "https://newgrad.ntt-east.co.jp/internship/",
+              "source_page_title": "インターンシップ | NTT東日本株式会社採用・募集",
+              "evidence_text": "職場型インターンシップ"
+            }
+          },
+          "application_status": {
+            "before": null,
+            "after": "unknown",
+            "evidence": null
+          },
+          "source_url": {
+            "before": null,
+            "after": "https://newgrad.ntt-east.co.jp/internship/",
+            "evidence": {
+              "source_url": "https://newgrad.ntt-east.co.jp/internship/",
+              "source_page_title": "インターンシップ | NTT東日本株式会社採用・募集",
+              "evidence_text": "セキュリティエンジニアコース"
+            }
+          },
+          "notes": {
+            "before": null,
+            "after": "締切日の記載は確認できませんでした",
+            "evidence": null
+          }
+        },
+        "confidence": 0.55,
+        "important_update": false,
+        "fingerprint": "e557ac38e01e0fe153f1092bfb01c520b9198f2e6c4868affde1e62831765f92"
+      },
+      {
+        "template_id": null,
+        "source_url": "https://newgrad.ntt-east.co.jp/internship/",
+        "parser_type": "rule",
+        "raw_extracted_json": {
+          "company_name": "NTT東日本",
+          "graduation_year": 2028,
+          "position_name": "デジタルマーケティングコース",
+          "job_category": "Marketing",
+          "selection_type": "インターン",
+          "application_status": "unknown",
+          "deadline_type": "date",
+          "application_start": null,
+          "application_deadline": null,
+          "event_start": null,
+          "event_end": null,
+          "source_url": "https://newgrad.ntt-east.co.jp/internship/",
+          "selection_steps": [
+            {
+              "title": "グループディスカッション",
+              "type": "GD",
+              "deadline": null,
+              "scheduled_at": null,
+              "order_index": 0,
+              "evidence": {
+                "source_url": "https://newgrad.ntt-east.co.jp/internship/",
+                "source_page_title": "インターンシップ | NTT東日本株式会社採用・募集",
+                "evidence_text": "※選考において書類審査・WEB検査(性格、言語、計数)その他、グループディスカッション・面談などを実施する場合があります。"
+              }
+            },
+            {
+              "title": "面談",
+              "type": "INTERVIEW",
+              "deadline": null,
+              "scheduled_at": null,
+              "order_index": 1,
+              "evidence": {
+                "source_url": "https://newgrad.ntt-east.co.jp/internship/",
+                "source_page_title": "インターンシップ | NTT東日本株式会社採用・募集",
+                "evidence_text": "※選考において書類審査・WEB検査(性格、言語、計数)その他、グループディスカッション・面談などを実施する場合があります。"
+              }
+            }
+          ],
+          "eligibility": null,
+          "notes": "※職場型デジタルマーケティングコースの実施時期は未定となります。\nインターンシップにエントリーできる対象や条件を教えてください。以下の条件に当てはまる方を応募の対象としております。\n・2027年4月~2028年3月に四年制大学、短期大学、高等専門学校、専門学校を卒業見込み、または大学院を修了見込みの方\n・2025年4月~2027年3月に四年制大学、短期大学、高等専門学校、専門学校を卒業、または大学院を修了し、その後正社員として就労経験のない方\n締切日の記載は確認できませんでした",
+          "confidence": 0.7,
+          "warnings": [
+            "締切日の記載は確認できませんでした"
+          ],
+          "evidence": {
+            "source_url": {
+              "source_url": "https://newgrad.ntt-east.co.jp/internship/",
+              "source_page_title": "インターンシップ | NTT東日本株式会社採用・募集",
+              "evidence_text": "デジタルマーケティングコース"
+            },
+            "graduation_year": {
+              "source_url": "https://newgrad.ntt-east.co.jp/internship/",
+              "source_page_title": "インターンシップ | NTT東日本株式会社採用・募集",
+              "evidence_text": "インターンシップ | NTT東日本株式会社採用・募集\nデジタルマーケティングコース"
+            },
+            "position_name": {
+              "source_url": "https://newgrad.ntt-east.co.jp/internship/",
+              "source_page_title": "インターンシップ | NTT東日本株式会社採用・募集",
+              "evidence_text": "デジタルマーケティングコース"
+            },
+            "job_category": {
+              "source_url": "https://newgrad.ntt-east.co.jp/internship/",
+              "source_page_title": "インターンシップ | NTT東日本株式会社採用・募集",
+              "evidence_text": "デジタルマーケティングコース"
+            },
+            "selection_type": {
+              "source_url": "https://newgrad.ntt-east.co.jp/internship/",
+              "source_page_title": "インターンシップ | NTT東日本株式会社採用・募集",
+              "evidence_text": "インターンシップ開催カレンダー"
+            },
+            "selection_steps": {
+              "source_url": "https://newgrad.ntt-east.co.jp/internship/",
+              "source_page_title": "インターンシップ | NTT東日本株式会社採用・募集",
+              "evidence_text": "※選考において書類審査・WEB検査(性格、言語、計数)その他、グループディスカッション・面談などを実施する場合があります。"
+            },
+            "notes": {
+              "source_url": "https://newgrad.ntt-east.co.jp/internship/",
+              "source_page_title": "インターンシップ | NTT東日本株式会社採用・募集",
+              "evidence_text": "※職場型デジタルマーケティングコースの実施時期は未定となります。\nインターンシップにエントリーできる対象や条件を教えてください。以下の条件に当てはまる方を応募の対象としております。\n・2027年4月~2028年3月に四年制大学、短期大学、高等専門学校、専門学校を卒業見込み、または大学院を修了見込みの方\n・2025年4月~2027年3月に四年制大学、短期大学、高等専門学校、専門学校を卒業、または大学院を修了し、その後正社員として就労経験のない方"
+            }
+          }
+        },
+        "diff_json": {
+          "position_name": {
+            "before": null,
+            "after": "デジタルマーケティングコース",
+            "evidence": {
+              "source_url": "https://newgrad.ntt-east.co.jp/internship/",
+              "source_page_title": "インターンシップ | NTT東日本株式会社採用・募集",
+              "evidence_text": "デジタルマーケティングコース"
+            }
+          },
+          "job_category": {
+            "before": null,
+            "after": "Marketing",
+            "evidence": {
+              "source_url": "https://newgrad.ntt-east.co.jp/internship/",
+              "source_page_title": "インターンシップ | NTT東日本株式会社採用・募集",
+              "evidence_text": "デジタルマーケティングコース"
+            }
+          },
+          "selection_type": {
+            "before": null,
+            "after": "インターン",
+            "evidence": {
+              "source_url": "https://newgrad.ntt-east.co.jp/internship/",
+              "source_page_title": "インターンシップ | NTT東日本株式会社採用・募集",
+              "evidence_text": "インターンシップ開催カレンダー"
+            }
+          },
+          "application_status": {
+            "before": null,
+            "after": "unknown",
+            "evidence": null
+          },
+          "source_url": {
+            "before": null,
+            "after": "https://newgrad.ntt-east.co.jp/internship/",
+            "evidence": {
+              "source_url": "https://newgrad.ntt-east.co.jp/internship/",
+              "source_page_title": "インターンシップ | NTT東日本株式会社採用・募集",
+              "evidence_text": "デジタルマーケティングコース"
+            }
+          },
+          "selection_steps": {
+            "before": null,
+            "after": [
+              {
+                "title": "グループディスカッション",
+                "type": "GD",
+                "deadline": null,
+                "scheduled_at": null,
+                "order_index": 0,
+                "evidence": {
+                  "source_url": "https://newgrad.ntt-east.co.jp/internship/",
+                  "source_page_title": "インターンシップ | NTT東日本株式会社採用・募集",
+                  "evidence_text": "※選考において書類審査・WEB検査(性格、言語、計数)その他、グループディスカッション・面談などを実施する場合があります。"
+                }
+              },
+              {
+                "title": "面談",
+                "type": "INTERVIEW",
+                "deadline": null,
+                "scheduled_at": null,
+                "order_index": 1,
+                "evidence": {
+                  "source_url": "https://newgrad.ntt-east.co.jp/internship/",
+                  "source_page_title": "インターンシップ | NTT東日本株式会社採用・募集",
+                  "evidence_text": "※選考において書類審査・WEB検査(性格、言語、計数)その他、グループディスカッション・面談などを実施する場合があります。"
+                }
+              }
+            ],
+            "evidence": {
+              "source_url": "https://newgrad.ntt-east.co.jp/internship/",
+              "source_page_title": "インターンシップ | NTT東日本株式会社採用・募集",
+              "evidence_text": "※選考において書類審査・WEB検査(性格、言語、計数)その他、グループディスカッション・面談などを実施する場合があります。"
+            }
+          },
+          "notes": {
+            "before": null,
+            "after": "※職場型デジタルマーケティングコースの実施時期は未定となります。\nインターンシップにエントリーできる対象や条件を教えてください。以下の条件に当てはまる方を応募の対象としております。\n・2027年4月~2028年3月に四年制大学、短期大学、高等専門学校、専門学校を卒業見込み、または大学院を修了見込みの方\n・2025年4月~2027年3月に四年制大学、短期大学、高等専門学校、専門学校を卒業、または大学院を修了し、その後正社員として就労経験のない方\n締切日の記載は確認できませんでした",
+            "evidence": {
+              "source_url": "https://newgrad.ntt-east.co.jp/internship/",
+              "source_page_title": "インターンシップ | NTT東日本株式会社採用・募集",
+              "evidence_text": "※職場型デジタルマーケティングコースの実施時期は未定となります。\nインターンシップにエントリーできる対象や条件を教えてください。以下の条件に当てはまる方を応募の対象としております。\n・2027年4月~2028年3月に四年制大学、短期大学、高等専門学校、専門学校を卒業見込み、または大学院を修了見込みの方\n・2025年4月~2027年3月に四年制大学、短期大学、高等専門学校、専門学校を卒業、または大学院を修了し、その後正社員として就労経験のない方"
+            }
+          }
+        },
+        "confidence": 0.7,
+        "important_update": false,
+        "fingerprint": "1bf5ec50182907cb9c3a98cd6f75a0e2e219d6c0dab85ee9e16ced4ea30a5aa6"
+      }
+    ],
+    "unchanged_skips_parsing": true
+  }
+]

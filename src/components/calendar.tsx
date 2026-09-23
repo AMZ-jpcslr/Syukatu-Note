@@ -86,6 +86,7 @@ export function Calendar() {
               id: e.id,
               title: e.title,
               start: e.start,
+              end: e.end,
               allDay: e.allDay,
               classNames: [
                 `event-${eventClass(e.type)}`,

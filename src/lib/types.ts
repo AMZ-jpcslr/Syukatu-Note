@@ -75,6 +75,13 @@ export type EventType = (typeof eventTypes)[number];
 export type DeadlineType = "date" | "capacity";
 export type RecruitmentStatus = "open" | "upcoming" | "closed" | "unknown";
 export interface Application {
+  application_start_value?: string | null;
+  application_deadline_value?: string | null;
+  event_start?: string | null;
+  event_end?: string | null;
+  calendar_exclusions?: string[];
+  recruitment_notes?: string;
+  eligibility?: string;
   deadline_type?: DeadlineType;
   copied_deadline_type?: DeadlineType;
   application_status?: RecruitmentStatus;
@@ -103,6 +110,9 @@ export interface Application {
   created_at: string;
 }
 export interface Step {
+  deadline_value?: string | null;
+  scheduled_value?: string | null;
+  calendar_enabled?: boolean;
   state?: (typeof stepStatuses)[number];
   id: string;
   user_id: string;
@@ -159,6 +169,13 @@ export interface PublicStep {
   step_type: EventType;
 }
 export interface Template {
+  application_start_value?: string | null;
+  application_deadline_value?: string | null;
+  event_start?: string | null;
+  event_end?: string | null;
+  selection_flow_details?: import("./recruitment").ParsedStep[];
+  eligibility?: string;
+  field_evidence?: Record<string, import("./recruitment").Evidence>;
   deadline_type?: DeadlineType;
   industry?: string;
   tags?: string[];
@@ -214,6 +231,7 @@ export interface CalendarEvent {
   title: string;
   type: EventType;
   start: string;
+  end?: string;
   allDay: boolean;
   completed: boolean;
 }

@@ -1,4 +1,4 @@
-import { differenceInCalendarDays, format, parseISO } from "date-fns";
+import { addDays, differenceInCalendarDays, format, parseISO } from "date-fns";
 import type { CalendarEvent, Store, EventType } from "./types";
 export const todayKey = (date = new Date()) =>
   new Intl.DateTimeFormat("sv-SE", {
@@ -86,7 +86,9 @@ export function eventsFromStore(store: Store): CalendarEvent[] {
       a.id,
       "応募開始",
       "応募開始",
-      a.application_start,
+      a.calendar_exclusions?.includes("application_start")
+        ? null
+        : (a.application_start_value ?? a.application_start),
       a.application_status === "closed",
     );
     push(
@@ -94,28 +96,55 @@ export function eventsFromStore(store: Store): CalendarEvent[] {
       a.id,
       "応募締切",
       "応募締切",
-      a.application_deadline,
+      a.calendar_exclusions?.includes("application_deadline")
+        ? null
+        : (a.application_deadline_value ?? a.application_deadline),
       a.application_status === "closed" ||
         ["応募済", "選考中", "内定", "不合格", "辞退"].includes(a.status),
     );
   });
+  store.applications.forEach((a) => {
+    if (a.event_start && !a.calendar_exclusions?.includes("event_start")) {
+      const allDay = a.event_start.length === 10;
+      const end =
+        a.event_end && !a.calendar_exclusions?.includes("event_end")
+          ? allDay && a.event_end.length === 10
+            ? format(addDays(parseISO(a.event_end), 1), "yyyy-MM-dd")
+            : a.event_end
+          : undefined;
+      events.push({
+        id: a.id + "-event",
+        applicationId: a.id,
+        title: a.company_name + " · " + (a.position_name || "開催予定"),
+        type: a.selection_type.includes("インターン") ? "インターン" : "その他",
+        start: a.event_start,
+        end,
+        allDay,
+        completed: false,
+      });
+    }
+  });
   store.steps.forEach((s) => {
-    if (store.preferences?.auto_calendar === false) return;
+    if (
+      store.preferences?.auto_calendar === false ||
+      s.calendar_enabled === false
+    )
+      return;
     push(
       `${s.id}-due`,
       s.user_application_id,
       s.title + " 締切",
       s.step_type,
-      s.deadline,
+      s.deadline_value ?? s.deadline,
       s.completed,
     );
-    if (s.scheduled_at)
+    if (s.scheduled_value || s.scheduled_at)
       push(
         `${s.id}-at`,
         s.user_application_id,
         s.title,
         s.step_type,
-        s.scheduled_at,
+        s.scheduled_value ?? s.scheduled_at,
         s.completed,
       );
   });

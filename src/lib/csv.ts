@@ -9,9 +9,13 @@ import {
   type Step,
   type Task,
 } from "./types";
+import { temporalSchema } from "./recruitment";
 const nullableDate = z.union([z.iso.date(), z.null()]);
 const stepSchema = z.object({
   backup_key: z.string().optional(),
+  deadline_value: temporalSchema.optional(),
+  scheduled_value: temporalSchema.optional(),
+  calendar_enabled: z.boolean().optional(),
   state: z.enum(stepStatuses).optional(),
   title: z.string().trim().min(1).max(300),
   step_type: z.enum(eventTypes),
@@ -38,6 +42,13 @@ export interface ImportBundle {
   tasks: Task[];
 }
 const columns = [
+  "application_start_value",
+  "application_deadline_value",
+  "event_start",
+  "event_end",
+  "calendar_exclusions",
+  "recruitment_notes",
+  "eligibility",
   "company_name",
   "industry",
   "graduation_year",
@@ -60,6 +71,13 @@ const columns = [
 ];
 export function exportCsv(store: Store) {
   const data = store.applications.map((a) => ({
+    application_start_value: a.application_start_value ?? "",
+    application_deadline_value: a.application_deadline_value ?? "",
+    event_start: a.event_start ?? "",
+    event_end: a.event_end ?? "",
+    calendar_exclusions: JSON.stringify(a.calendar_exclusions ?? []),
+    recruitment_notes: a.recruitment_notes ?? "",
+    eligibility: a.eligibility ?? "",
     company_name: a.company_name,
     industry: a.industry,
     graduation_year: a.graduation_year,
@@ -83,6 +101,9 @@ export function exportCsv(store: Store) {
         .map(
           ({
             id: backup_key,
+            deadline_value,
+            scheduled_value,
+            calendar_enabled,
             state,
             title,
             step_type,
@@ -95,6 +116,9 @@ export function exportCsv(store: Store) {
             order_index,
           }) => ({
             backup_key,
+            deadline_value,
+            scheduled_value,
+            calendar_enabled,
             state,
             title,
             step_type,
@@ -162,6 +186,32 @@ export function parseCsv(text: string, user: string): ImportBundle {
       const id = crypto.randomUUID();
       bundle.applications.push({
         ...input,
+        application_start_value: temporalSchema.parse(
+          row.application_start_value || null,
+        ),
+        application_deadline_value: temporalSchema.parse(
+          row.application_deadline_value || null,
+        ),
+        event_start: temporalSchema.parse(row.event_start || null),
+        event_end: temporalSchema.parse(row.event_end || null),
+        calendar_exclusions: z
+          .array(
+            z.enum([
+              "application_start",
+              "application_deadline",
+              "event_start",
+              "event_end",
+            ]),
+          )
+          .parse(JSON.parse(row.calendar_exclusions || "[]")),
+        recruitment_notes: z
+          .string()
+          .max(20000)
+          .parse(row.recruitment_notes ?? ""),
+        eligibility: z
+          .string()
+          .max(20000)
+          .parse(row.eligibility ?? ""),
         id,
         user_id: user,
         company_id: null,
@@ -263,6 +313,9 @@ export function exportCsvFiles(store: Store): Record<string, string> {
       "step_type",
       "deadline",
       "scheduled_at",
+      "deadline_value",
+      "scheduled_value",
+      "calendar_enabled",
       "completed",
       "state",
       "result",
@@ -323,6 +376,11 @@ export function parseCsvFiles(
           ...s,
           deadline: s.deadline || null,
           scheduled_at: s.scheduled_at || null,
+          deadline_value: s.deadline_value || null,
+          scheduled_value: s.scheduled_value || null,
+          calendar_enabled: s.calendar_enabled
+            ? bool(s.calendar_enabled)
+            : true,
           completed: bool(s.completed),
           state: s.state || undefined,
           order_index: Number(s.order_index),

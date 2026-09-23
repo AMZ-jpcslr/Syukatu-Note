@@ -1,4 +1,5 @@
 "use client";
+import { UrlRegistration } from "./recruitment-monitor";
 import { useEffect } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -120,7 +121,16 @@ export function ApplicationForm({
         research: application?.research ?? "",
         created_at: application?.created_at ?? new Date().toISOString(),
         application_start: values.application_start || null,
+        application_start_value:
+          values.application_start === (application?.application_start ?? "")
+            ? application?.application_start_value
+            : null,
         application_deadline: values.application_deadline || null,
+        application_deadline_value:
+          values.application_deadline ===
+          (application?.application_deadline ?? "")
+            ? application?.application_deadline_value
+            : null,
         tags: values.tags
           .split(/[,、]/)
           .map((x) => x.trim())
@@ -136,6 +146,7 @@ export function ApplicationForm({
       title={application ? "企業・募集を編集" : "企業を追加"}
       description="企業と募集の情報を登録して、選考の予定をまとめましょう。"
     >
+      {!application && <UrlRegistration />}
       <form onSubmit={handleSubmit(submit)} className="form-grid">
         <label className="span-2">
           企業名 <span className="required">*</span>

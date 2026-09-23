@@ -1,4 +1,5 @@
 "use client";
+import { CompanyMonitor } from "./recruitment-monitor";
 import { groupApplications, deadlineLabel } from "@/lib/applications";
 import { applicationStatusLabels } from "@/lib/types";
 import { SelectionFlow } from "./selection-flow";
@@ -162,6 +163,7 @@ export function CompanyDetail({
           ))}
         </nav>
       </section>
+      <CompanyMonitor application={a} />
       <div className="detail-progress panel">
         <div>
           <span className="muted text-xs">選考の進捗</span>
@@ -235,7 +237,21 @@ export function CompanyDetail({
                 ["卒年度", a.graduation_year + "卒"],
                 ["選考区分", a.selection_type],
                 ["応募開始日", displayDate(a.application_start, "yyyy/M/d")],
-                ["応募締切", deadlineLabel(a)],
+                [
+                  "応募締切",
+                  deadlineLabel(a) +
+                    (a.application_deadline_value &&
+                    a.application_deadline_value.length > 10
+                      ? " " + jstTime(a.application_deadline_value)
+                      : ""),
+                ],
+                [
+                  "開催日程",
+                  [a.event_start, a.event_end].filter(Boolean).join(" ～ ") ||
+                    "未設定",
+                ],
+                ["応募資格", a.eligibility || "未確認"],
+                ["取得した公開情報", a.recruitment_notes || "—"],
                 ["勤務地", a.location || "—"],
               ].map(([label, value]) => (
                 <div key={label}>
