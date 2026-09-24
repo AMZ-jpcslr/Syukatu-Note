@@ -94,6 +94,7 @@ export const applications = pgTable(
       .array()
       .notNull()
       .default([]),
+    field_provenance: provenance(),
     recruitment_notes: text("recruitment_notes").notNull().default(""),
     eligibility: text("eligibility").notNull().default(""),
     copied_application_deadline: date("copied_application_deadline"),
@@ -136,6 +137,8 @@ export const steps = pgTable(
     ...owner(),
     title: text("title").notNull(),
     step_type: text("step_type").notNull(),
+    field_provenance: provenance(),
+    import_key: text("import_key"),
     deadline_value: text("deadline_value"),
     scheduled_value: text("scheduled_value"),
     calendar_enabled: boolean("calendar_enabled").notNull().default(true),
@@ -161,6 +164,11 @@ export const tasks = pgTable(
     selection_step_id: uuid("selection_step_id").unique(),
     task_type: text("task_type").notNull().default("その他"),
     due_date: date("due_date"),
+    due_value: text("due_value"),
+    estimated_minutes: integer("estimated_minutes").notNull().default(30),
+    calendar_enabled: boolean("calendar_enabled").notNull().default(true),
+    field_provenance: provenance(),
+    import_key: text("import_key"),
     completed: boolean("completed").notNull().default(false),
     memo: text("memo").notNull().default(""),
     url: text("url").notNull().default(""),
@@ -375,4 +383,139 @@ export const candidateReviews = pgTable(
 export const aiBudget = pgTable("recruitment_ai_budget", {
   month: text("month").primaryKey(),
   calls: integer("calls").notNull().default(0),
+});
+// v2 private imports. RLS, checks and approval RPCs are defined in migration 006.
+function provenance() {
+  return jsonb("field_provenance")
+    .$type<Record<string, import("../lib/import/schema").FieldOrigin>>()
+    .notNull()
+    .default({});
+}
+export const profiles = pgTable("user_profiles", {
+  user_id: uuid("user_id")
+    .primaryKey()
+    .references(() => anonymousUsers.id),
+  skills: text("skills").array().notNull().default([]),
+  experiences: text("experiences").array().notNull().default([]),
+  interests: text("interests").array().notNull().default([]),
+});
+export const dataSources = pgTable(
+  "data_sources",
+  {
+    id: id(),
+    user_id: uuid("user_id")
+      .notNull()
+      .references(() => anonymousUsers.id),
+    type: text("type").notNull(),
+    source_ref: text("source_ref").notNull(),
+    url: text("url").notNull().default(""),
+    gmail_message_id: text("gmail_message_id"),
+    received_at: instant("received_at"),
+    page_title: text("page_title").notNull().default(""),
+    content_hash: text("content_hash").notNull(),
+    checked_at: instant("checked_at").notNull().defaultNow(),
+  },
+  (t) => [
+    unique().on(t.user_id, t.type, t.source_ref),
+    unique().on(t.id, t.user_id),
+  ],
+);
+export const importInbox = pgTable(
+  "import_inbox",
+  {
+    id: id(),
+    user_id: uuid("user_id").notNull(),
+    source_id: uuid("source_id").notNull(),
+    source_type: text("source_type").notNull(),
+    source_ref: text("source_ref").notNull(),
+    company_id: uuid("company_id").references(() => companies.id),
+    raw_extracted_json: jsonb("raw_extracted_json")
+      .$type<import("../lib/import/schema").PageExtractionResult>()
+      .notNull(),
+    previous_json: jsonb("previous_json"),
+    status: text("status").notNull().default("pending"),
+    created_at: created(),
+    reviewed_at: instant("reviewed_at"),
+  },
+  (t) => [
+    foreignKey({
+      columns: [t.source_id, t.user_id],
+      foreignColumns: [dataSources.id, dataSources.user_id],
+    })
+      .onUpdate("cascade")
+      .onDelete("cascade"),
+    unique().on(t.id, t.user_id),
+  ],
+);
+export const importedEvents = pgTable(
+  "imported_events",
+  {
+    ...owner(),
+    title: text("title").notNull(),
+    event_type: text("event_type").notNull(),
+    start_value: text("start_value").notNull(),
+    end_value: text("end_value"),
+    import_key: text("import_key").notNull(),
+    field_provenance: provenance(),
+    completed: boolean("completed").notNull().default(false),
+  },
+  (t) => [ownerFK(t), unique().on(t.user_application_id, t.import_key)],
+);
+export const importAudit = pgTable("import_audit", {
+  id: id(),
+  user_id: uuid("user_id")
+    .notNull()
+    .references(() => anonymousUsers.id),
+  inbox_id: uuid("inbox_id"),
+  user_application_id: uuid("user_application_id"),
+  action: text("action").notNull(),
+  details: jsonb("details").notNull().default({}),
+  created_at: created(),
+});
+export const extensionPairings = pgTable("extension_pairings", {
+  id: id(),
+  user_id: uuid("user_id")
+    .notNull()
+    .references(() => anonymousUsers.id),
+  code_hash: text("code_hash").notNull().unique(),
+  expires_at: instant("expires_at").notNull(),
+  used_at: instant("used_at"),
+  created_at: created(),
+});
+export const extensionTokens = pgTable("extension_tokens", {
+  id: id(),
+  user_id: uuid("user_id")
+    .notNull()
+    .references(() => anonymousUsers.id),
+  token_hash: text("token_hash").notNull().unique(),
+  label: text("label").notNull().default("Chrome"),
+  extension_origin: text("extension_origin").notNull(),
+  expires_at: instant("expires_at").notNull(),
+  revoked_at: instant("revoked_at"),
+  created_at: created(),
+});
+export const importRateLimits = pgTable("import_rate_limits", {
+  key: text("key").primaryKey(),
+  window_start: instant("window_start").notNull().defaultNow(),
+  count: integer("count").notNull().default(1),
+});
+export const gmailConnections = pgTable("gmail_connections", {
+  user_id: uuid("user_id")
+    .primaryKey()
+    .references(() => anonymousUsers.id),
+  refresh_token_encrypted: text("refresh_token_encrypted").notNull(),
+  next_page_token: text("next_page_token"),
+  sync_enabled: boolean("sync_enabled").notNull().default(false),
+  last_synced_at: instant("last_synced_at"),
+  last_error: text("last_error"),
+  lease_until: instant("lease_until"),
+  created_at: created(),
+});
+export const gmailOAuthStates = pgTable("gmail_oauth_states", {
+  state_hash: text("state_hash").primaryKey(),
+  user_id: uuid("user_id")
+    .notNull()
+    .references(() => anonymousUsers.id),
+  browser_hash: text("browser_hash").notNull(),
+  expires_at: instant("expires_at").notNull(),
 });

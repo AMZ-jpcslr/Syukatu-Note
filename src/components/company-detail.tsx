@@ -1,4 +1,5 @@
 "use client";
+import { ProfileMatch } from "./today-planner";
 import { CompanyMonitor } from "./recruitment-monitor";
 import { groupApplications, deadlineLabel } from "@/lib/applications";
 import { applicationStatusLabels } from "@/lib/types";
@@ -163,6 +164,7 @@ export function CompanyDetail({
           ))}
         </nav>
       </section>
+      <ProfileMatch application={a} />
       <CompanyMonitor application={a} />
       <div className="detail-progress panel">
         <div>

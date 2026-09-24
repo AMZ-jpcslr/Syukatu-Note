@@ -1,4 +1,6 @@
 "use client";
+import { rankTask } from "@/lib/import/planner";
+import { InboxNotice, SourceBadge } from "./import-inbox";
 import { RecruitmentNotice } from "./recruitment-monitor";
 import Link from "next/link";
 import { useState } from "react";
@@ -64,7 +66,9 @@ function ScheduleList({
           <CalendarDays size={16} />
           <div>
             <strong>{e.title}</strong>
-            <small>{e.type}</small>
+            <small>
+              {e.type} {e.sourceType && <SourceBadge source={e.sourceType} />}
+            </small>
           </div>
           {deadline ? (
             <DueBadge date={e.start} />
@@ -115,9 +119,24 @@ export function Dashboard() {
   const overdue = events.filter(
     (e) => e.type !== "応募開始" && daysUntil(e.start) < 0,
   );
-  const todayTasks = data.tasks.filter(
-    (t) => !t.completed && t.due_date && daysUntil(t.due_date) === 0,
-  );
+  const todayTasks = data.tasks
+    .filter(
+      (t) =>
+        !t.completed &&
+        (t.due_value ?? t.due_date) &&
+        daysUntil((t.due_value ?? t.due_date)!) === 0,
+    )
+    .sort(
+      (a, b) =>
+        rankTask(
+          b,
+          data.applications.find((app) => app.id === b.user_application_id),
+        ).score -
+          rankTask(
+            a,
+            data.applications.find((app) => app.id === a.user_application_id),
+          ).score || (a.estimated_minutes ?? 30) - (b.estimated_minutes ?? 30),
+    );
   const todaySteps = data.steps.filter(
     (s) =>
       !s.completed &&
@@ -196,6 +215,7 @@ export function Dashboard() {
           企業を追加
         </Button>
       </PageHeading>
+      <InboxNotice />
       <RecruitmentNotice />
       {!!overdue.length && (
         <Link href="/calendar" className="overdue-notice">

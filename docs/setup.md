@@ -52,9 +52,11 @@ NEXT_PUBLIC_DEMO_MODE=false
 | 004 | [capacity_deadlines.sql](../supabase/migrations/202609230004_capacity_deadlines.sql)   | 定員締切、募集終了状況、コピー・CSV対応              |
 | 005 | [recruitment_monitor.sql](../supabase/migrations/202609230005_recruitment_monitor.sql) | 監視URL、スナップショット、更新候補、ジョブ、承認RPC |
 
+| 006 | [v2_import.sql](../supabase/migrations/202609240006_v2_import.sql) | 非公開Inbox・拡張ペアリング・Gmail・承認と出典・Today Planner |
+
 ### 既存環境の更新
 
-- 対象プロジェクトを確認し、バックアップを確保してから**未適用のSQLだけ**を番号順に実行します。004まで適用済みなら005だけです。
+- 対象プロジェクトを確認し、バックアップを確保してから**未適用のSQLだけ**を番号順に実行します。005まで適用済みなら006だけです。
 - migrationはテーブル・列・権限・関数をまとめて変更します。途中の文だけを抜き出して実行しないでください。
 - 001の再実行による `relation "anonymous_users" already exists` は、既存テーブルがあるという意味です。削除して作り直す対応はしません。
 - SQL適用後にアプリを更新・デプロイします。既存の匿名IDやセッションのストレージ名は変更しません。
@@ -77,6 +79,8 @@ supabase db push
 SQL Editorで手動適用した環境からCLIへ切り替える場合は、実DBとmigration履歴を照合してから使ってください。履歴が未登録のまま `db push` すると、適用済みSQLを再実行する可能性があります。DockerとCLIの `supabase start` / `supabase db reset` は、初期化してよいローカル環境に限って使用します。
 
 DDL・RLS・RPCの正本は [supabase/migrations](../supabase/migrations) です。`src/db/schema.ts` はDrizzleの型付き定義です。`pnpm db:generate` の出力もレビューし、既存テーブルを重複作成しない追加migrationとして扱います。
+
+v2の追加環境変数・拡張・ペアリング・Gmailは [v2導入手順](v2.md) を参照してください。適用確認：[check_v2.sql](../supabase/diagnostics/check_v2.sql)。
 
 ## 50社のseed
 

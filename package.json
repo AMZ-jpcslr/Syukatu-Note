@@ -1,6 +1,6 @@
 {
   "name": "shukatsu-calendar",
-  "version": "1.1.0",
+  "version": "2.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -13,7 +13,9 @@
     "db:seed": "tsx scripts/seed-recruitment-templates.ts",
     "format": "node node_modules/prettier/bin/prettier.cjs --write .",
     "lint": "eslint . --max-warnings 0",
-    "db:seed:demo": "tsx scripts/seed.ts"
+    "db:seed:demo": "tsx scripts/seed.ts",
+    "dev:extension": "node scripts/build-extension.mjs --watch",
+    "build:extension": "node scripts/build-extension.mjs"
   },
   "dependencies": {
     "@fullcalendar/core": "6.1.21",
@@ -26,7 +28,7 @@
     "@hookform/resolvers": "latest",
     "@radix-ui/react-dialog": "latest",
     "@radix-ui/react-slot": "latest",
-    "@supabase/supabase-js": "latest",
+    "@supabase/supabase-js": "2.116.0",
     "@tanstack/react-query": "latest",
     "cheerio": "^1.2.0",
     "class-variance-authority": "latest",
@@ -36,7 +38,7 @@
     "ipaddr.js": "^2.5.0",
     "lucide-react": "latest",
     "luxon": "^3.7.2",
-    "next": "latest",
+    "next": "16.3.5",
     "next-themes": "latest",
     "papaparse": "latest",
     "postgres": "latest",
@@ -52,13 +54,15 @@
     "@electric-sql/pglite": "^0.5.8",
     "@playwright/test": "latest",
     "@tailwindcss/postcss": "latest",
+    "@types/chrome": "^0.1.36",
     "@types/luxon": "^3.7.5",
     "@types/node": "latest",
     "@types/papaparse": "latest",
     "@types/react": "latest",
     "@types/react-dom": "latest",
-    "dotenv": "latest",
+    "dotenv": "18.0.2",
     "drizzle-kit": "latest",
+    "esbuild": "^0.28.2",
     "eslint": "^9.39.5",
     "eslint-config-next": "^16.3.5",
     "prettier": "^3.9.8",

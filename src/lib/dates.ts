@@ -149,7 +149,7 @@ export function eventsFromStore(store: Store): CalendarEvent[] {
       );
   });
   store.tasks
-    .filter((t) => !t.selection_step_id)
+    .filter((t) => !t.selection_step_id && t.calendar_enabled !== false)
     .forEach((t) =>
       push(
         t.id,
@@ -162,7 +162,7 @@ export function eventsFromStore(store: Store): CalendarEvent[] {
             : t.task_type === "面接"
               ? "一次面接"
               : "その他",
-        t.due_date,
+        t.due_value ?? t.due_date,
         t.completed,
       ),
     );
@@ -179,6 +179,23 @@ export function eventsFromStore(store: Store): CalendarEvent[] {
       i.scheduled_at,
       !!i.result,
     ),
+  );
+  (store.importedEvents ?? []).forEach((e) =>
+    events.push({
+      id: e.id,
+      applicationId: e.user_application_id,
+      title: `${names.get(e.user_application_id) ?? "企業"} · ${e.title}`,
+      type: e.event_type,
+      start: e.start_value,
+      end: e.end_value
+        ? e.start_value.length === 10 && e.end_value.length === 10
+          ? format(addDays(parseISO(e.end_value), 1), "yyyy-MM-dd")
+          : e.end_value
+        : undefined,
+      allDay: e.start_value.length === 10,
+      completed: e.completed,
+      sourceType: e.field_provenance.start_value?.source_type,
+    }),
   );
   return events.sort((a, b) => a.start.localeCompare(b.start));
 }

@@ -75,6 +75,7 @@ export type EventType = (typeof eventTypes)[number];
 export type DeadlineType = "date" | "capacity";
 export type RecruitmentStatus = "open" | "upcoming" | "closed" | "unknown";
 export interface Application {
+  field_provenance?: Record<string, import("./import/schema").FieldOrigin>;
   application_start_value?: string | null;
   application_deadline_value?: string | null;
   event_start?: string | null;
@@ -110,6 +111,8 @@ export interface Application {
   created_at: string;
 }
 export interface Step {
+  field_provenance?: Record<string, import("./import/schema").FieldOrigin>;
+  import_key?: string;
   deadline_value?: string | null;
   scheduled_value?: string | null;
   calendar_enabled?: boolean;
@@ -128,6 +131,11 @@ export interface Step {
   order_index: number;
 }
 export interface Task {
+  estimated_minutes?: number;
+  due_value?: string | null;
+  calendar_enabled?: boolean;
+  import_key?: string;
+  field_provenance?: Record<string, import("./import/schema").FieldOrigin>;
   selection_step_id?: string | null;
   id: string;
   user_id: string;
@@ -203,6 +211,7 @@ export interface Template {
   created_at: string;
 }
 export interface Store {
+  importedEvents?: ImportedEvent[];
   preferences?: Preferences;
   watchlist?: WatchlistItem[];
   applications: Application[];
@@ -226,6 +235,7 @@ export const defaultPreferences: Preferences = {
   auto_calendar: true,
 };
 export interface CalendarEvent {
+  sourceType?: import("./import/schema").ImportSource | "manual";
   id: string;
   applicationId: string;
   title: string;
@@ -238,3 +248,16 @@ export interface CalendarEvent {
 export type ChildTable =
   "selection_steps" | "tasks" | "es_questions" | "interview_notes";
 export type Child = Step | Task | ESQuestion | Interview;
+
+export interface ImportedEvent {
+  id: string;
+  user_id: string;
+  user_application_id: string;
+  title: string;
+  event_type: EventType;
+  start_value: string;
+  end_value: string | null;
+  import_key: string;
+  completed: boolean;
+  field_provenance: Record<string, import("./import/schema").FieldOrigin>;
+}

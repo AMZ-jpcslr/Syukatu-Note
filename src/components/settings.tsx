@@ -1,4 +1,5 @@
 "use client";
+import { ImportSettings } from "./import-settings";
 import { MonitorSettings } from "./recruitment-monitor";
 import { useSyncExternalStore, useState } from "react";
 import { useTheme } from "next-themes";
@@ -131,6 +132,7 @@ export function Settings() {
         description="大切な記録を、安全に持ち歩こう。"
       />
       <div className="settings-grid">
+        <ImportSettings />
         <MonitorSettings />
         <section className="panel settings-panel">
           <h2>選考の自動連携</h2>

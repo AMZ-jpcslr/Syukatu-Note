@@ -95,6 +95,13 @@ export function ChildForm({
         row = {
           ...base,
           selection_step_id: (item as Task)?.selection_step_id ?? null,
+          due_value:
+            get("due_date") === (item as Task)?.due_date
+              ? ((item as Task)?.due_value ?? null)
+              : null,
+          estimated_minutes: Number(get("estimated_minutes")) || 30,
+          calendar_enabled: (item as Task)?.calendar_enabled ?? true,
+          import_key: (item as Task)?.import_key,
           title: get("title"),
           task_type: get("task_type"),
           due_date: get("due_date") || null,
@@ -145,6 +152,18 @@ export function ChildForm({
       }
     >
       <form className="form-grid" onSubmit={submit}>
+        {table === "tasks" && (
+          <label>
+            所要時間（分）
+            <input
+              name="estimated_minutes"
+              type="number"
+              min="1"
+              max="1440"
+              defaultValue={(item as Task)?.estimated_minutes ?? 30}
+            />
+          </label>
+        )}
         {!application && (
           <label className="span-2">
             企業

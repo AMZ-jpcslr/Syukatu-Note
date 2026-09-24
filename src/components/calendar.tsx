@@ -8,6 +8,7 @@ import jaLocale from "@fullcalendar/core/locales/ja";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Plus } from "lucide-react";
+import { sourceLabels } from "@/lib/import/schema";
 import { eventsFromStore, eventClass } from "@/lib/dates";
 import { useStore } from "./providers";
 import { Empty, ErrorState, Loading, PageHeading } from "./shared";
@@ -84,7 +85,9 @@ export function Calendar() {
             .filter((e) => showCompleted || !e.completed)
             .map((e) => ({
               id: e.id,
-              title: e.title,
+              title: e.sourceType
+                ? `[${sourceLabels[e.sourceType as keyof typeof sourceLabels] ?? "手動"}] ${e.title}`
+                : e.title,
               start: e.start,
               end: e.end,
               allDay: e.allDay,

@@ -37,23 +37,33 @@ function writeDemo(data: Store) {
 export async function loadStore(): Promise<Store> {
   const user = await initializeUser();
   if (isDemo) return readDemo(user);
-  const [applications, steps, tasks, es, interviews, preferences, watchlist] =
-    await Promise.all([
-      fetchAll<Store["applications"][number]>("user_applications", user),
-      fetchAll<Store["steps"][number]>("selection_steps", user),
-      fetchAll<Store["tasks"][number]>("tasks", user),
-      fetchAll<Store["es"][number]>("es_questions", user),
-      fetchAll<Store["interviews"][number]>("interview_notes", user),
-      supabase!
-        .from("user_preferences")
-        .select("auto_create_tasks,auto_calendar")
-        .eq("user_id", user)
-        .maybeSingle(),
-      fetchAll<WatchlistItem>("watchlist", user),
-    ]);
+  const [
+    applications,
+    steps,
+    tasks,
+    es,
+    interviews,
+    preferences,
+    watchlist,
+    importedEvents,
+  ] = await Promise.all([
+    fetchAll<Store["applications"][number]>("user_applications", user),
+    fetchAll<Store["steps"][number]>("selection_steps", user),
+    fetchAll<Store["tasks"][number]>("tasks", user),
+    fetchAll<Store["es"][number]>("es_questions", user),
+    fetchAll<Store["interviews"][number]>("interview_notes", user),
+    supabase!
+      .from("user_preferences")
+      .select("auto_create_tasks,auto_calendar")
+      .eq("user_id", user)
+      .maybeSingle(),
+    fetchAll<WatchlistItem>("watchlist", user),
+    fetchAll<import("./types").ImportedEvent>("imported_events", user),
+  ]);
   if (preferences.error) throw preferences.error;
   return {
     applications,
+    importedEvents,
     steps,
     tasks,
     es,
@@ -81,6 +91,9 @@ export async function removeApplication(id: string) {
     d.applications = d.applications.filter((a) => a.id !== id);
     d.steps = d.steps.filter((a) => a.user_application_id !== id);
     d.tasks = d.tasks.filter((a) => a.user_application_id !== id);
+    d.importedEvents = d.importedEvents?.filter(
+      (a) => a.user_application_id !== id,
+    );
     d.es = d.es.filter((a) => a.user_application_id !== id);
     d.interviews = d.interviews.filter((a) => a.user_application_id !== id);
     writeDemo(d);
@@ -321,6 +334,10 @@ export async function importBundle(bundle: import("./csv").ImportBundle) {
     );
     d.steps.push(...bundle.steps.map((a) => ({ ...a, user_id: user })));
     d.tasks.push(...bundle.tasks.map((a) => ({ ...a, user_id: user })));
+    d.importedEvents = [
+      ...(d.importedEvents ?? []),
+      ...(bundle.importedEvents ?? []).map((e) => ({ ...e, user_id: user })),
+    ];
     writeDemo(d);
     return;
   }

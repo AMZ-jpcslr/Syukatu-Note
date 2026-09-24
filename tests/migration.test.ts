@@ -49,6 +49,9 @@ it("upgrades a populated v1 database without changing identities or losing legac
         "utf8",
       ),
     );
+    await db.exec(
+      readFileSync("supabase/migrations/202609240006_v2_import.sql", "utf8"),
+    );
     expect(
       (
         await db.query(

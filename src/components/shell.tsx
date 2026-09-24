@@ -9,6 +9,7 @@ import {
   CheckSquare,
   Settings,
   Library,
+  Inbox,
   Plus,
   ArrowUpRight,
   Bell,
@@ -85,6 +86,13 @@ export function Shell({ children }: { children: React.ReactNode }) {
             </Link>
           ))}
         </nav>
+        <Link
+          href="/inbox"
+          className={cn("nav-item", active("/inbox") && "active")}
+        >
+          <Inbox size={18} />
+          自動取得
+        </Link>
         <p className="nav-caption mt-8">DISCOVER</p>
         <Link
           href="/templates"
@@ -108,7 +116,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
           </Link>
           <div className="sidebar-footer">
             <span>SHUKATSU NOTE</span>
-            <span>v1.1</span>
+            <span>v2.0</span>
           </div>
         </div>
       </aside>
@@ -120,6 +128,8 @@ export function Shell({ children }: { children: React.ReactNode }) {
             <strong>
               {[
                 ...nav,
+                { href: "/inbox", label: "自動取得" },
+                { href: "/planner", label: "Today Planner" },
                 { href: "/templates", label: "募集を探す" },
                 { href: "/settings", label: "設定" },
               ].find((n) => active(n.href))?.label ?? "企業詳細"}

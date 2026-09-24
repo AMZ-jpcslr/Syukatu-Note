@@ -1,14 +1,32 @@
 # しゅうかつ手帳
 
-**CAREER WORKSPACE v1.1 — 今日の準備から、次の選考まで。**
+**CAREER WORKSPACE v2 — 就活情報を確認して、自分の手帳へ。**
 
 企業・募集・締切・選考フロー・ES・面接をひとつの手帳に。登録・ログイン画面なしで使える、日本語の就活管理Webアプリです。2028卒に限らず、卒年度を指定して管理できます。
 
-[アプリを開く](https://syukatu-note.vercel.app/) · [セットアップ](docs/setup.md) · [募集情報の自動取得](docs/recruitment-monitoring.md) · [設計・データ保護](docs/architecture.md)
+[アプリを開く](https://syukatu-note.vercel.app/) · [セットアップ](docs/setup.md) · [v2導入・Chrome拡張・Gmail](docs/v2.md) · [募集情報の自動取得](docs/recruitment-monitoring.md) · [設計・データ保護](docs/architecture.md)
 
 ![ダッシュボード：今日やること、直近の締切、今週の予定、次の選考を一覧表示](docs/images/dashboard.png)
 
 > 画像はローカルのデモモードで撮影した実際のアプリ画面です。個人データは使用していません。企業に紐づく選考・日程は表示確認用の架空情報で、実際の募集日程を示すものではありません。
+
+## v2：MyPageから取り込む
+
+企業MyPageを開き、拡張で日程を検出 → 自分だけの **自動取得Inbox** → 項目を選んで承認。タスク・カレンダー・明示された選考フローを作成できます。スマホでは日程テキストの貼り付けに対応します。
+
+| Chrome拡張の抽出プレビュー                                                                    | スマホのInbox承認                                                                                   |
+| --------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| <img src="docs/images/v2-extension.png" width="300" alt="SNAR例文からES締切を検出する拡張" /> | <img src="docs/images/v2-inbox-mobile.png" width="300" alt="自動取得Inboxで日程と反映項目を確認" /> |
+
+> v2画像は提供されたSNAR例文を使ったローカル検証画面です。実際のMIXIのログイン画面や募集日程を示すものではありません。
+
+- **SNAR / i-web / 汎用ページ**：ルールベースで日付と証拠を抽出。年不明は推測しません。
+- **非公開Inbox**：MyPage・メール・公式サイトの候補を確認。手動修正と出典優先度を保護します。
+- **Today Planner**：使える時間、期限、志望度から今日の行動を提案。経験タグとの関連も確認できます。
+- **任意のGmail連携**：readonlyで採用メールを解析。Google設定なしでも他の主要機能は動きます。
+- **Geminiは任意**：未設定でも動作。OpenAI APIは使いません。
+
+既存環境は追加migration **006** とWebの再デプロイが必要です。[導入・拡張インストール・ペアリングの手順 →](docs/v2.md)
 
 ## できること
 
@@ -108,7 +126,7 @@ pnpm dev
 ## Supabase・Vercelで運用する
 
 1. Supabaseプロジェクトを作り、**Anonymous Sign-Ins** を有効にします。
-2. [セットアップ手順](docs/setup.md)に沿って、未適用のmigrationを番号順に実行します。現在は **001〜005** です。
+2. [セットアップ手順](docs/setup.md)に沿って、未適用のmigrationを番号順に実行します。現在は **001〜006** です。
 3. `supabase/seed.sql`、続いて `supabase/seed-recruitment-sources.sql` を実行します。初期50社と監視URLを追加します。
 4. 下記の環境変数をVercelの対象環境へ登録します。
 5. Framework PresetをNext.js、Install Commandを `pnpm install --frozen-lockfile`、Build Commandを `pnpm build` にしてデプロイします。
@@ -118,19 +136,23 @@ pnpm dev
 
 ### 環境変数
 
-| 変数                                   | 用途・設定                                                             |
-| -------------------------------------- | ---------------------------------------------------------------------- |
-| `NEXT_PUBLIC_SUPABASE_URL`             | 本番必須。Supabase Project URL                                         |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | 本番必須。`sb_publishable_...` の公開キー                              |
-| `NEXT_PUBLIC_DEMO_MODE`                | 本番は `false`。ローカルデモのみ `true`                                |
-| `SUPABASE_SERVICE_ROLE_KEY`            | 自動取得機能を使う場合のサーバー専用キー。`SUPABASE_SECRET_KEY` でも可 |
-| `CRON_SECRET`                          | Cron認証用のランダムな秘密値                                           |
-| `RECRUITMENT_MONITOR_ENABLED`          | `true` でCron処理を有効化。既定OFF                                     |
-| `GEMINI_API_KEY`                       | 任意。未設定でもルール解析・差分レビューは動作                         |
-| `RECRUITMENT_AI_ENABLED`               | 任意のAI補助を許可する場合のみ `true`。既定OFF                         |
-| `RECRUITMENT_GEMINI_MODEL`             | 任意。既定 `gemini-2.5-flash-lite`                                     |
-| `RECRUITMENT_AI_MONTHLY_LIMIT`         | 任意。AI呼び出しの全体月間上限。既定50回                               |
-| `DATABASE_URL`                         | Drizzle CLI／CLI seed用。通常のVercel実行には不要                      |
+| 変数                                        | 用途・設定                                                             |
+| ------------------------------------------- | ---------------------------------------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`                  | 本番必須。Supabase Project URL                                         |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`      | 本番必須。`sb_publishable_...` の公開キー                              |
+| `NEXT_PUBLIC_DEMO_MODE`                     | 本番は `false`。ローカルデモのみ `true`                                |
+| `SUPABASE_SERVICE_ROLE_KEY`                 | 自動取得機能を使う場合のサーバー専用キー。`SUPABASE_SECRET_KEY` でも可 |
+| `APP_URL`                                   | Webの正規オリジン。拡張・Gmail接続用                                   |
+| `EXTENSION_ORIGINS`                         | 許可する `chrome-extension://拡張ID`。カンマ区切り                     |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | 任意。Gmail OAuth用のサーバー専用設定                                  |
+| `GMAIL_TOKEN_ENCRYPTION_KEY`                | 任意。Gmail認証情報の暗号化キー（32バイトbase64）                      |
+| `CRON_SECRET`                               | Cron認証用のランダムな秘密値                                           |
+| `RECRUITMENT_MONITOR_ENABLED`               | `true` でCron処理を有効化。既定OFF                                     |
+| `GEMINI_API_KEY`                            | 任意。未設定でもルール解析・差分レビューは動作                         |
+| `RECRUITMENT_AI_ENABLED`                    | 任意のAI補助を許可する場合のみ `true`。既定OFF                         |
+| `RECRUITMENT_GEMINI_MODEL`                  | 任意。既定 `gemini-2.5-flash-lite`                                     |
+| `RECRUITMENT_AI_MONTHLY_LIMIT`              | 任意。AI呼び出しの全体月間上限。既定50回                               |
+| `DATABASE_URL`                              | Drizzle CLI／CLI seed用。通常のVercel実行には不要                      |
 
 ひな形は [.env.example](.env.example) にあります。公開キーはSupabaseの **Settings → API Keys** から取得します。`sb_secret_...` や `service_role` は公開キー欄へ入力しないでください。`NEXT_PUBLIC_` の値はビルド時に組み込まれるため、変更後は新しいビルドが必要です。
 
@@ -175,11 +197,12 @@ src/
   services/            URL取得、ルール解析、任意AI、差分、キュー処理
   db/schema.ts         Drizzleの型付きスキーマ
 supabase/
-  migrations/          テーブル・RLS・RPCの正本（001〜005）
+  migrations/          テーブル・RLS・RPCの正本（001〜006）
   diagnostics/         読み取り専用の設定確認SQL
   seed.sql             50社の公開テンプレート
   seed-recruitment-sources.sql
-scripts/               seed、実ページ確認、README画像撮影
+packages/browser-extension/  MV3拡張：Popup・DOM取得・provider adapters
+scripts/               seed、拡張ビルド、実ページ確認、README画像撮影
 tests/                 単体・DB・E2Eテスト
 docs/                  導入・運用・設計と画面画像
 ```
@@ -192,6 +215,7 @@ docs/                  導入・運用・設計と画面画像
 pnpm lint
 pnpm test
 pnpm build
+pnpm build:extension
 pnpm test:e2e
 ```
 
@@ -199,13 +223,13 @@ pnpm test:e2e
 
 単体・DBテストは実Supabaseへの接続なしで動作します。PGliteにmigrationを適用してRLS・RPC・コピー独立性・部分承認などを検証します。E2Eはポート3100のデモでデスクトップとスマホ幅を確認します。Supabase Authや本番Cronの動作はデプロイ後に別途確認してください。
 
-E2Eの既定ブラウザはEdgeです。Chromiumを使う場合の設定やREADME画像の撮り直し手順は、[開発・撮影手順](docs/development.md)を参照してください。
+拡張E2Eは事前にビルドし、Windowsでは `EXTENSION_TEST_CHANNEL=msedge` を指定します。WebのE2Eの既定ブラウザはEdgeです。Chromiumを使う場合の設定やREADME画像の撮り直し手順は、[開発・撮影手順](docs/development.md)を参照してください。
 
 ## 現在の制約
 
-- **CSVは完全バックアップではありません。** 対象は企業・募集・選考・タスクです。ES・面接・企業研究を含む移行は引き継ぎコードを使います。
+- **CSVは完全バックアップではありません。** 対象は企業・募集・選考・タスク・取り込み予定です。ES・面接・企業研究を含む移行は引き継ぎコードを使います。
 - PWAはホーム画面への追加とオフライン案内に対応します。オフライン編集・同期キュー・バックグラウンドPush通知は未実装です。
-- 自動取得は公開HTMLが対象です。ログイン、CAPTCHA、JavaScript必須のMyPage、PDF・画像からの読み取りは行いません。
+- サーバーのURL取得は公開HTMLが対象です。MyPageは本人がログインして開いたページを拡張で取り込みます。自動ログイン、CAPTCHA回避、PDF・画像のOCRは行いません。
 - 自動抽出はページ構造に依存します。未取得・年度不明・複数候補は人の確認が必要で、募集内容の正確性を保証しません。
 - 選考ステップと面接記録の両方に同じ面接日時を設定すると、カレンダーにも両方表示されます。
 

@@ -8,6 +8,7 @@ import {
   type Store,
   type Step,
   type Task,
+  type ImportedEvent,
 } from "./types";
 import { temporalSchema } from "./recruitment";
 const nullableDate = z.union([z.iso.date(), z.null()]);
@@ -28,6 +29,9 @@ const stepSchema = z.object({
   order_index: z.number().int().min(0),
 });
 const taskSchema = z.object({
+  due_value: temporalSchema.optional(),
+  estimated_minutes: z.number().int().min(1).max(1440).optional(),
+  calendar_enabled: z.boolean().optional(),
   source_step_backup_key: z.string().nullable().optional(),
   title: z.string().trim().min(1).max(300),
   task_type: z.string().max(100),
@@ -36,10 +40,18 @@ const taskSchema = z.object({
   memo: z.string().max(20000),
   url: safeUrl,
 });
+const importedEventSchema = z.object({
+  title: z.string().min(1).max(300),
+  event_type: z.enum(eventTypes),
+  start_value: temporalSchema.refine((v) => !!v),
+  end_value: temporalSchema,
+  completed: z.boolean(),
+});
 export interface ImportBundle {
   applications: Application[];
   steps: Step[];
   tasks: Task[];
+  importedEvents?: ImportedEvent[];
 }
 const columns = [
   "application_start_value",
@@ -68,6 +80,7 @@ const columns = [
   "tags",
   "selection_steps",
   "tasks",
+  "imported_events",
 ];
 export function exportCsv(store: Store) {
   const data = store.applications.map((a) => ({
@@ -132,6 +145,17 @@ export function exportCsv(store: Store) {
           }),
         ),
     ),
+    imported_events: JSON.stringify(
+      (store.importedEvents ?? [])
+        .filter((e) => e.user_application_id === a.id)
+        .map(({ title, event_type, start_value, end_value, completed }) => ({
+          title,
+          event_type,
+          start_value,
+          end_value,
+          completed,
+        })),
+    ),
     tasks: JSON.stringify(
       store.tasks
         .filter((t) => t.user_application_id === a.id)
@@ -141,6 +165,9 @@ export function exportCsv(store: Store) {
             title,
             task_type,
             due_date,
+            due_value,
+            estimated_minutes,
+            calendar_enabled,
             completed,
             memo,
             url,
@@ -149,6 +176,9 @@ export function exportCsv(store: Store) {
             title,
             task_type,
             due_date,
+            due_value,
+            estimated_minutes,
+            calendar_enabled,
             completed,
             memo,
             url,
@@ -174,7 +204,12 @@ export function parseCsv(text: string, user: string): ImportBundle {
     throw new Error("CSVの形式が不正です：" + result.errors[0].message);
   if (!result.data.length || result.data.length > 500)
     throw new Error("CSVは1〜500件の企業を含めてください。");
-  const bundle: ImportBundle = { applications: [], steps: [], tasks: [] };
+  const bundle: ImportBundle = {
+    applications: [],
+    steps: [],
+    tasks: [],
+    importedEvents: [],
+  };
   for (const [index, row] of result.data.entries()) {
     try {
       const input = applicationSchema.parse({
@@ -234,6 +269,25 @@ export function parseCsv(text: string, user: string): ImportBundle {
         .array(taskSchema)
         .max(100)
         .parse(JSON.parse(row.tasks || "[]"));
+      const importedEvents = z
+        .array(importedEventSchema)
+        .max(200)
+        .parse(JSON.parse(row.imported_events || "[]"));
+      for (const event of importedEvents)
+        bundle.importedEvents!.push({
+          ...event,
+          ...owner,
+          id: crypto.randomUUID(),
+          start_value: event.start_value!,
+          import_key: "csv:" + crypto.randomUUID(),
+          field_provenance: {
+            start_value: {
+              source_type: "manual",
+              userEdited: true,
+              lastUpdated: new Date().toISOString(),
+            },
+          },
+        });
       const stepIds = new Map<string, string>();
       for (const { backup_key, ...s } of steps) {
         const sid = crypto.randomUUID();
@@ -329,6 +383,9 @@ export function exportCsvFiles(store: Store): Record<string, string> {
       "title",
       "task_type",
       "due_date",
+      "due_value",
+      "estimated_minutes",
+      "calendar_enabled",
       "completed",
       "memo",
       "url",
@@ -392,6 +449,13 @@ export function parseCsvFiles(
         .map((t) => ({
           ...t,
           due_date: t.due_date || null,
+          due_value: t.due_value || null,
+          estimated_minutes: t.estimated_minutes
+            ? Number(t.estimated_minutes)
+            : 30,
+          calendar_enabled: t.calendar_enabled
+            ? bool(t.calendar_enabled)
+            : true,
           completed: bool(t.completed),
           source_step_backup_key: t.source_step_backup_key || null,
         })),

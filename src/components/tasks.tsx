@@ -1,4 +1,5 @@
 "use client";
+import { SourceBadge } from "./import-inbox";
 import { useState } from "react";
 import Link from "next/link";
 import { Check, Plus, Pencil, Trash2 } from "lucide-react";
@@ -89,7 +90,10 @@ export function Tasks() {
                 · {t.task_type}
               </small>
             </Link>
-            <DueBadge date={t.due_date} />
+            {t.field_provenance?.due_value && (
+              <SourceBadge source={t.field_provenance.due_value.source_type} />
+            )}
+            <DueBadge date={t.due_value ?? t.due_date} />
             <button
               aria-label={`${t.title}を編集`}
               className="icon-button"

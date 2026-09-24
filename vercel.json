@@ -99,6 +99,10 @@
     {
       "path": "/api/cron/recruitment-monitor",
       "schedule": "15 23 * * *"
+    },
+    {
+      "path": "/api/cron/gmail",
+      "schedule": "45 0 * * *"
     }
   ]
 }
