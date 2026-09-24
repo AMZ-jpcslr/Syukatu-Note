@@ -74,8 +74,8 @@ export async function GET(request: Request) {
         geminiConfigured: !!process.env.GEMINI_API_KEY,
         aiEnabled: process.env.RECRUITMENT_AI_ENABLED === "true",
         workerConfigured: !!(
-          process.env.SUPABASE_SERVICE_ROLE_KEY ??
-          process.env.SUPABASE_SECRET_KEY
+          process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() ||
+          process.env.SUPABASE_SECRET_KEY?.trim()
         ),
       },
       { headers: { "Cache-Control": "no-store" } },

@@ -1,429 +1,212 @@
-# しゅうかつ手帳 / CAREER WORKSPACE v1.1
+# しゅうかつ手帳
 
-登録・ログイン画面なしで使える、就職活動の企業・募集・選考・タスク管理アプリです。日本語UI、レスポンシブ、ライト／ダークモードに対応しています。
+**CAREER WORKSPACE v1.1 — 今日の準備から、次の選考まで。**
 
-## 実装範囲
+企業・募集・締切・選考フロー・ES・面接をひとつの手帳に。登録・ログイン画面なしで使える、日本語の就活管理Webアプリです。2028卒に限らず、卒年度を指定して管理できます。
 
-| Phase | 内容                                                                             |
-| ----- | -------------------------------------------------------------------------------- |
-| 1     | Supabase匿名認証、企業・募集CRUD、選考フロー・タスク、ダッシュボード、カレンダー |
-| 2     | 公開募集、企業名の類似検索、引用／引用して編集、公開・非公開の切り替え           |
-| 3     | ES、面接記録、企業研究、アプリ内通知、フィルター、業界・志望度・選考状況の集計   |
-| 4     | 使い捨て引き継ぎコード、企業・選考・タスクCSV、PWA manifest／オフライン案内      |
+[アプリを開く](https://syukatu-note.vercel.app/) · [セットアップ](docs/setup.md) · [募集情報の自動取得](docs/recruitment-monitoring.md) · [設計・データ保護](docs/architecture.md)
 
-カレンダーは月／週／リストを切り替え可能。応募・選考・タスク・面接記録の日付から都度生成し、イベントを選ぶと企業詳細へ移動します。日時・通知ルールは日本時間（Asia/Tokyo）です。
+![ダッシュボード：今日やること、直近の締切、今週の予定、次の選考を一覧表示](docs/images/dashboard.png)
 
-## 技術構成
+> 画像はローカルのデモモードで撮影した実際のアプリ画面です。個人データは使用していません。企業に紐づく選考・日程は表示確認用の架空情報で、実際の募集日程を示すものではありません。
 
-- Next.js **16.3.5**（作成時のlatest stable）、App Router、React 19、TypeScript
-- Tailwind CSS 4、shadcn/ui形式のButton／Radix Dialog、Lucide
-- Supabase PostgreSQL / Auth / PostgREST、RLS
-- Drizzle ORM（型付きDBスキーマとseed）、SQL migration
-- React Hook Form、Zod、TanStack Query、date-fns
-- FullCalendar 6.1.21 + Luxon timezone plugin
-- Vitest、PGlite（実PostgreSQLのWASMビルド）、Playwright
+## できること
 
-FullCalendarはcore/reactと各プラグインの互換性を揃えるため6.1.21に固定しています。アプリ実行時のDBアクセスはSupabase SDKからPostgRESTを経由します。Drizzleの管理者接続をリクエスト処理に使わず、各ユーザーのJWTに対してRLSを適用します。
+| やりたいこと         | 機能                                                                       |
+| -------------------- | -------------------------------------------------------------------------- |
+| 今週の行動を決める   | 今日のタスク、3日以内の締切、今週の予定、次の選考をホームに集約            |
+| 応募先を整理する     | 企業ごとの募集グループ、複数職種の独立管理、検索・絞り込み・並び替え       |
+| 締切を見落とさない   | 月／週／リストのカレンダー、定員に達し次第の締切、募集終了の記録           |
+| 選考を進める         | 状態・結果・期限を持つ選考フロー、並び替え、タスク・カレンダー連携         |
+| 募集を見つける       | 公開テンプレート検索、気になる企業の保存、引用・コピーして編集・すべて引用 |
+| 情報の更新を確認する | 公式採用ページの取得、ルール解析、証拠付き差分、項目ごとの手動承認         |
+| ES・面接を振り返る   | 複数ES設問、文字数カウンター、過去ES検索、面接の質問・回答・振り返り       |
+| スマホで使う         | 下部ナビ、ライト／ダークモード、ホーム画面への追加（PWA）                  |
+| データを持ち運ぶ     | 安全な引き継ぎコード、企業・選考・タスクのCSV入出力                        |
 
-## ローカル起動
+**公開されるのは募集情報だけです。** ES回答、面接記録、個人メモ、志望度、選考結果、個人タスクは共有しません。引用した募集は自分専用のコピーになり、元のテンプレートの更新で勝手に書き換わりません。
 
-Node.js 22以上、pnpm 11.19.0を使います。
+## 画面を見る
+
+### 予定を見渡す
+
+応募開始、締切、ES、Webテスト、面接をカレンダーへ集約。予定をクリックすると該当企業の詳細を開きます。日本時間（Asia/Tokyo）で表示します。
+
+![月表示のカレンダー：選考とタスクの日程を種類別に表示](docs/images/calendar.png)
+
+### 企業ごとに管理し、選考を進める
+
+同じ会社の複数募集をまとめて表示しながら、応募状況やESは募集ごとに管理できます。選考フローはドラッグ操作と上下ボタンで並び替えられます。
+
+| 企業一覧                                                   | 選考フロー                                                                    |
+| ---------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| ![企業ごとに募集をまとめた一覧](docs/images/companies.png) | ![企業詳細の選考タブ：期限、状態、進捗を表示](docs/images/selection-flow.png) |
+
+### みんなの募集を、自分の手帳へ
+
+企業名・業界・職種・卒年度・募集種別で検索し、応募予定へ追加できます。「すべて引用」は表示中の未引用募集をまとめて追加し、検索画面に留まります。
+
+![募集を探す：公開テンプレートの検索と引用](docs/images/templates.png)
+
+初期seedは50社の企業マスターと採用情報の監視用テンプレートです。未確認の日程は空欄、募集状況は「要確認」とし、募集が存在すると推測して登録しません。
+
+<details>
+<summary>スマートフォン・ダークモードの画面</summary>
+
+<p>スマートフォンでは下部ナビから主要画面へ移動できます。</p>
+<img src="docs/images/mobile-calendar.png" width="300" alt="スマートフォンのカレンダーと下部ナビゲーション" />
+
+![ダークモードのカレンダー](docs/images/calendar-dark.png)
+
+</details>
+
+## 最初の使い方
+
+1. **募集を探す** — 公開テンプレートを検索し、「応募予定に追加」。手入力でも登録できます。
+2. **自分の予定を入れる** — 志望度や選考フローを編集し、期限・実施日時を設定します。
+3. **今日の行動を確認する** — ホームとカレンダーで予定を確認し、完了したタスクにチェックします。
+4. **記録を残す** — ES、面接、企業研究を募集ごとに保存します。
+5. **更新を確認する** — 公式ページから取得した候補を確認し、必要な項目だけ反映します。
+
+ブラウザの保存データを削除すると、自分の記録にアクセスできなくなる可能性があります。設定画面で引き継ぎコードを発行し、別の安全な場所に保管してください。引き継ぎは所有権の移動であり、複数端末の同時同期ではありません。
+
+## ローカルで試す（Supabase不要）
+
+**Node.js 22以上・pnpm 11.19.0** を使用します。Node.jsをインストールした後はターミナルを開き直し、`node --version` で確認してください。
 
 ```bash
-corepack enable
+git clone https://github.com/AMZ-jpcslr/Syukatu-Note.git
+cd Syukatu-Note
+npm install -g pnpm@11.19.0
 pnpm install --frozen-lockfile
-cp .env.example .env.local
-pnpm dev
 ```
 
-PowerShellではコピーに `Copy-Item .env.example .env.local` を使えます。[http://localhost:3000](http://localhost:3000)を開いてください。
+`.env.example` を `.env.local` にコピーします。既に設定済みのファイルがある場合は上書きせず編集してください。
 
-### 接続なしで動作確認
+```bash
+# macOS / Linux
+cp .env.example .env.local
+```
 
-`.env.local` に以下を設定します。
+```powershell
+# Windows PowerShell
+Copy-Item .env.example .env.local
+```
+
+`.env.local` のデモ設定を変更して起動します。
 
 ```dotenv
 NEXT_PUBLIC_DEMO_MODE=true
 ```
 
-7社のデモ企業・選考・タスクをブラウザ内に作成します。日程は表示確認用の架空情報で、実在企業の現在の募集を表しません。変更はlocalStorageに保存されます。画面に「DEMO」「架空の日程」と明示します。
-
-デモのデータは別ブラウザには共有されません。公開／引用は同じブラウザ内での機能確認です。引き継ぎはSupabase接続時のみ有効です。本番とデモは別ストレージで、未設定の本番接続からデモへ勝手にフォールバックしません。
-
-## Supabase設定
-
-1. Supabaseでプロジェクトを作成します。
-2. **Authentication → Sign In / Providers → Anonymous Sign-Ins** を有効にします。メールやパスワードの登録画面は使用しません。
-3. プロジェクトのURLとpublishable keyを取得します。古いプロジェクトのanon keyも同じ変数に設定可能です。
-4. SQL Editorで、下記migrationを順に**全文**実行します。
-5. SupabaseのSite URLにローカルまたはVercelのURLを設定します。
-6. `.env.local` を設定し、開発サーバーを再起動します。
-
-```dotenv
-NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
-NEXT_PUBLIC_DEMO_MODE=false
-```
-
-RLSは公開テンプレート以外の個人データを所有者に制限します。公開テンプレートの閲覧も、画面裏側で自動作成された匿名セッションを使います。未認証のanonロールには個人テーブルの権限を付与していません。
-
-匿名サインインのレート制限はSupabase側で設定してください。CAPTCHAをSupabaseで有効にする場合は、このアプリにCAPTCHA tokenの取得・送信を追加する必要があります（現在のUIでは未実装）。匿名ユーザーを一律自動削除するジョブは設定しないでください。データや引き継ぎ元のIDが失われます。
-
-## 環境変数
-
-| 変数                                 | 用途                                           | 必須            |
-| ------------------------------------ | ---------------------------------------------- | --------------- |
-| NEXT_PUBLIC_SUPABASE_URL             | Supabase Project URL                           | 本番            |
-| NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY | 公開APIキー                                    | 本番            |
-| NEXT_PUBLIC_DEMO_MODE                | trueで明示的なローカルデモ                     | 任意、通常false |
-| DATABASE_URL                         | migration／Drizzle seed専用のPostgreSQL接続URL | CLI操作時のみ   |
-| PLAYWRIGHT_CHANNEL                   | E2Eブラウザ。既定msedge、CIはchromium          | テスト時のみ    |
-
-`DATABASE_URL`は秘密情報です。`NEXT_PUBLIC_`を付けません。service_role keyは不要です。`NEXT_PUBLIC_`値はNext.jsのビルド時に組み込まれるため、変更後は再ビルド／再デプロイします。
-
-## DB migration / seed
-
-適用順：
-
-1. `supabase/migrations/202609220001_initial.sql`：テーブル・インデックス・RLS・共有／引用／引き継ぎRPC
-2. `supabase/migrations/202609220002_csv.sql`：トランザクション内のCSV一括追加・選考種別制約
-3. `supabase/migrations/202609220003_v11.sql`：v1.1の追加列・RLS・選考連携・コピー／CSV RPCの更新
-4. `supabase/migrations/202609230004_capacity_deadlines.sql`：定員締切・募集終了状況・コピー／CSV RPCの追加対応
-
-SQL Editorを使う場合は上記を順に実行します。Supabase CLIを使う場合：
-
 ```bash
-supabase login
-supabase link --project-ref YOUR_PROJECT_REF
-supabase db push
+pnpm dev
 ```
 
-ローカルSupabaseはDocker + Supabase CLIの `supabase start` / `supabase db reset` で起動・初期化できます。
+[localhost:3000](http://localhost:3000) を開くと、7社のデモ企業と架空の日程が表示されます。編集内容はそのブラウザのlocalStorageに保存されます。デモでは他ブラウザとの共有、引き継ぎ、採用ページの自動取得は実行しません。本番設定が不足したときにデモへ自動切り替えすることもありません。
 
-50社の企業マスター・2028卒募集監視テンプレートは `supabase/seed.sql` をSQL Editorで全文実行するか、次のコマンドで投入します。Connectで取得した直接接続またはsession poolerの接続文字列を `.env.local` の `DATABASE_URL` に設定してください（既存の環境変数を優先して読み込みます）。
+## Supabase・Vercelで運用する
 
-```bash
-pnpm db:seed
-# または npm run db:seed
+1. Supabaseプロジェクトを作り、**Anonymous Sign-Ins** を有効にします。
+2. [セットアップ手順](docs/setup.md)に沿って、未適用のmigrationを番号順に実行します。現在は **001〜005** です。
+3. `supabase/seed.sql`、続いて `supabase/seed-recruitment-sources.sql` を実行します。初期50社と監視URLを追加します。
+4. 下記の環境変数をVercelの対象環境へ登録します。
+5. Framework PresetをNext.js、Install Commandを `pnpm install --frozen-lockfile`、Build Commandを `pnpm build` にしてデプロイします。
+6. 別ブラウザとのデータ分離、企業登録と再訪、引用、カレンダー連携を確認します。
+
+**既存DBでは適用済みmigrationを再実行しません。** 初期テーブルを作り直したり、本番で `supabase db reset` / `drizzle-kit push` を実行したりしないでください。SQL Editorで適用する場合は各ファイルを全文実行します。詳しい適用順・確認SQL・既存環境の更新手順は[セットアップ](docs/setup.md)にまとめています。
+
+### 環境変数
+
+| 変数                                   | 用途・設定                                                             |
+| -------------------------------------- | ---------------------------------------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`             | 本番必須。Supabase Project URL                                         |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | 本番必須。`sb_publishable_...` の公開キー                              |
+| `NEXT_PUBLIC_DEMO_MODE`                | 本番は `false`。ローカルデモのみ `true`                                |
+| `SUPABASE_SERVICE_ROLE_KEY`            | 自動取得機能を使う場合のサーバー専用キー。`SUPABASE_SECRET_KEY` でも可 |
+| `CRON_SECRET`                          | Cron認証用のランダムな秘密値                                           |
+| `RECRUITMENT_MONITOR_ENABLED`          | `true` でCron処理を有効化。既定OFF                                     |
+| `GEMINI_API_KEY`                       | 任意。未設定でもルール解析・差分レビューは動作                         |
+| `RECRUITMENT_AI_ENABLED`               | 任意のAI補助を許可する場合のみ `true`。既定OFF                         |
+| `RECRUITMENT_GEMINI_MODEL`             | 任意。既定 `gemini-2.5-flash-lite`                                     |
+| `RECRUITMENT_AI_MONTHLY_LIMIT`         | 任意。AI呼び出しの全体月間上限。既定50回                               |
+| `DATABASE_URL`                         | Drizzle CLI／CLI seed用。通常のVercel実行には不要                      |
+
+ひな形は [.env.example](.env.example) にあります。公開キーはSupabaseの **Settings → API Keys** から取得します。`sb_secret_...` や `service_role` は公開キー欄へ入力しないでください。`NEXT_PUBLIC_` の値はビルド時に組み込まれるため、変更後は新しいビルドが必要です。
+
+「Supabase is not configured」「環境変数が未設定です」が出た場合は、[接続設定の切り分け](docs/setup.md#トラブルシューティング)を参照してください。SQLを再実行しても、環境変数の不足は解消しません。
+
+## 公式採用ページの自動取得
+
+```mermaid
+flowchart LR
+  A[公式URL] --> B[取得・本文ハッシュ比較]
+  B -->|変更なし| C[終了]
+  B -->|変更あり| D[ルールベース解析]
+  D --> E[更新候補・証拠テキスト]
+  D -. キーあり・条件を満たす場合のみ .-> F[Gemini補助]
+  F --> E
+  E --> G[人が項目ごとに確認]
+  G --> H[選んだ項目だけ反映]
 ```
 
-`seed_key` の一意制約、企業名の一意制約、トランザクションとadvisory lockにより繰り返し実行できます。既存の2028卒公開募集に公式URLがあれば、その募集を優先して監視テンプレートを追加しません。既存情報の名称・業界・日程・募集内容を上書きしません。日本語／英語の別名は `scripts/recruitment-companies.json` に記載しています。
+**OpenAI APIは使用しません。Gemini API Keyも必須ではありません。** 自動処理は更新候補の作成までで、公開テンプレートや個人の応募情報を勝手に更新しません。締切不明は `null`、時刻不明は日付のみとし、前年の日程や23:59を補いません。
 
-新規監視テンプレートは「2028卒 採用情報」「未発表」「unknown / unverified」です。職種は未設定、開始・締切・最終確認はNULL、公開選考フローは空配列です。企業分野のタグから具体的な職種募集を推定しません。提供された公式URLは採用情報の参照先であり、閲覧確認・2028卒募集の存在確認済みとは扱いません。
+企業詳細の「最新情報を取得」、企業追加の「URLから登録」、`/templates/updates` の差分レビューを利用できます。日程のカレンダー追加・選考からのタスク生成も承認時に選べます。
 
-SQL実行末尾の `seeded_companies` と `companies_with_public_2028_templates` がどちらも **50** になることを確認します。全企業数は既存企業があれば50より多くなります。
+[自動取得の設定・Cron・レビュー権限・robots.txt・コスト管理 →](docs/recruitment-monitoring.md)
 
-```sql
-SELECT COUNT(*) AS seeded_companies
-FROM public.companies WHERE seed_key LIKE 'career-company-%';
-```
+## 技術構成・ディレクトリ
 
-旧サンプル7社のseedは `pnpm db:seed:demo` に残しています。既存データは削除しませんが、URLなしの募集はv1.1では他ユーザーの検索・引用対象外です。本番の初期投入には50社seedを使ってください。
-
-`src/db/schema.ts` はDrizzle定義、`supabase/migrations` が権限や関数を含む実際のDDLの正本です。将来 `pnpm db:generate` で差分を生成した場合も、既存テーブルを重複作成せず、RLS・GRANT・関数をレビューした新しいSupabase migrationとして追加してください。`drizzle-kit push`を本番に実行しないでください。
-
-## Vercelへのデプロイ
-
-1. このディレクトリをGitHubリポジトリとしてpushします。
-2. Vercelの「Add New → Project」からリポジトリをImportします。
-3. Framework Presetは **Next.js**。Root Directoryをこのアプリのあるディレクトリにします。
-4. Node.jsは **22.x以上**。Install Commandは `pnpm install --frozen-lockfile`、Build Commandは `pnpm build`、Output DirectoryはNext.js既定のままです。
-5. Production環境にSupabase URL・publishable keyを登録し、`NEXT_PUBLIC_DEMO_MODE=false`を設定します。
-6. Supabase migrationを適用してからDeployします。Vercelへの `DATABASE_URL` 登録は不要です。
-7. SupabaseのSite URLに本番URLを設定します。
-8. 通常ブラウザとシークレットウィンドウで別々に開き、以下のスモークテストを行います。
-
-- 登録／ログインの入力なしで企業を登録し、再読込後も残る
-- 他方のブラウザに私的企業・メモ・ESが見えない
-- 公開した募集を他方で検索・引用できる
-- 引用元の非公開化後も、自分のコピーとメモが残る
-- 引き継ぎで記録が移り、元ブラウザを再読込すると移行済み記録が見えない
-- スマホで企業登録・タスク完了・カレンダー操作ができる
-
-Preview環境は検証用Supabaseプロジェクトを分けるか、デモモードにすることを推奨します。第三者が管理するPreviewで本番データを扱わない構成にできます。
-
-v1.0は利用者が本番デプロイ済みです。v1.1のmigration・seed・再デプロイは、下記の更新手順で対象の本番プロジェクトへ適用してください。ローカルテストの成功は本番DBへの適用完了を意味しません。
-
-## アーキテクチャ・スキーマ
-
-```text
-ブラウザ（登録画面なし）
- ├─ Supabase Auth.signInAnonymously()
- │    └─ auth.users UUID + JWT / refresh token → localStorage
- ├─ TanStack Query → Supabase SDK → PostgREST → RLS → PostgreSQL
- ├─ FullCalendar ← 応募日・選考日・タスク期限・面接日時から派生
- └─ デモ時のみ → 別のlocalStorageデータ
-
-共有：companies → recruitment_templates
-                           ↓ コピー（snapshot + 公開フロー）
-個人：anonymous_users → user_applications
-                            ├─ selection_steps
-                            ├─ tasks
-                            ├─ es_questions
-                            └─ interview_notes
-```
-
-| テーブル              | 主な内容                                                                                            |
-| --------------------- | --------------------------------------------------------------------------------------------------- |
-| anonymous_users       | auth.usersに対応する匿名ID、コードハッシュ・有効期限、登録日                                        |
-| companies             | 公開企業マスター。企業名、業界、website                                                             |
-| recruitment_templates | 募集スナップショット、卒年度、職種、募集名、選考区分、開始・締切、URL、公開フロー、公開状態、投稿者 |
-| user_applications     | 所有者、企業・募集の独立スナップショット、志望度、状態、メモ、タグ、企業研究                        |
-| selection_steps       | 種別、期限・実施日時、完了、結果、メモ、URL、順序                                                   |
-| tasks                 | 種類、期限、完了、メモ、URL                                                                         |
-| es_questions          | 設問、文字数、回答、下書き／完成／提出済み                                                          |
-| interview_notes       | 日時、段階、形式、面接官、質問・回答・振り返り・結果                                                |
-| transfer_attempts     | 引き継ぎの試行回数。クライアントから直接読書不可                                                    |
-
-未公開の手入力企業はuser_applicationsのスナップショットにのみ保存し、公開時に企業マスターと募集テンプレートを作ります。これにより、企業名や応募先の存在自体を勝手に共有しません。
-
-calendar_eventsは永続化せず派生イベントとして型定義しています。元の期限を編集・削除したときに、古いカレンダー行が残る不整合を回避します。個人データはクライアント取得のため、Next.jsの静的ページに埋め込みません。
-
-## 個人データの保護
-
-- ブラウザが申告した `anonymous_user_id` だけで認可しません。Supabaseが署名したJWTの `auth.uid()` で判定します。localStorageのIDを書き換えても他人のデータは読めません。
-- 子テーブルは `(user_application_id, user_id)` の複合外部キーで、所有者の異なる企業への紐づけを拒否します。
-- 公開RPCは共有可能な列だけを挿入し、ES回答、面接記録、メモ、結果、タスク、志望度、タグ、勤務地は読み取りません。
-- 公開フローは個人ステップから自動転記せず、公開ダイアログで一般的な種類を明示選択します。
-- 公開テンプレートは作者だけが公開状態を変更可能。編集・再投稿は個人側を編集して新規公開します。既存コピーは更新しません。
-- 引き継ぎコードは暗号学的乱数32バイト（64桁hex）、DBにはSHA-256のみ保存。30日・1回限り、同一匿名ユーザーは毎時5回まで試行可能。トランザクションと行ロックで同時利用を防ぎます。
-- コードの平文は発行したブラウザでのみ再表示可能。紛失した場合は元ブラウザから再発行できます。復旧先では古いコードを使い回せません。
-- エクスポート時はCSVの数式注入をエスケープ。インポートはZod検証・件数確認後、1トランザクションで追加します。
-- Service Workerは個人データ・認証API・アプリHTMLをキャッシュしません。オフライン時は再接続案内を表示します。
-- 匿名方式のため、セッションと引き継ぎコードを両方失うと、本人確認による復旧はできません。
-
-## 機能上の制限
-
-- ブラウザ通知はユーザー操作時に現在の通知を表示します。バックグラウンドpushや定期送信は未実装。アプリ内通知は7・3・1・0日前を表示します。
-- CSV対象は企業／募集／選考／タスク。ES、面接記録、企業研究はCSVに含みません。完全な移行には引き継ぎコードを使います。
-- 引き継ぎは所有権の移動です。複数端末からの同時編集・端末共有ではありません。
-- 手入力の募集日と選考日時を扱います。募集サイトの自動取得・更新は行いません。
-- 同一の面接を選考ステップと面接記録の両方に日時付きで登録した場合、両方がカレンダーに表示されます。片方の日時だけを予定として使うか、記録側に結果を入力して完了表示にしてください。
-- PWAはインストール可能なmanifestとオフライン案内を提供します。オフラインでのデータ編集や同期キューは未実装です。
-- インターンなどの日跨ぎ開催は、必要な開催日をステップとして登録できます。複数日を範囲として編集するUIは未実装です。
-- 公開募集検索はRLSで可視な募集をページング取得し、企業名の正規化（全半角・株式会社等）と卒年度・職種・募集名の一致で候補を出します。大規模公開データでは全文検索・サーバー検索に拡張してください。
-
-## ディレクトリ
+| 領域           | 使用技術                                                               |
+| -------------- | ---------------------------------------------------------------------- |
+| アプリ         | Next.js 16.3.5 / App Router / React 19 / TypeScript                    |
+| UI             | Tailwind CSS 4 / shadcn/ui形式のコンポーネント / Radix Dialog / Lucide |
+| データ         | Supabase PostgreSQL・Auth・PostgREST / RLS / Drizzleスキーマ           |
+| フォーム・状態 | React Hook Form / Zod / TanStack Query                                 |
+| 日程           | date-fns / FullCalendar 6.1.21 / Luxon                                 |
+| 検証           | Vitest / PGlite / Playwright                                           |
 
 ```text
 src/
-  app/                     App Routerの各ページ・共通レイアウト・テーマ
-  components/              画面ごとのUI、フォーム、providers
-    ui/                    shadcn/ui形式の共通Button・Dialog
-  db/schema.ts             Drizzle schema
-  lib/
-    types.ts               ドメイン型
-    validation.ts          企業入力Zodスキーマ
-    supabase.ts             匿名セッション
-    repository.ts           RLS経由CRUD・RPC、デモadapter
-    dates.ts                JST・イベント生成・進捗・通知
-    templates.ts            類似検索・公開allowlist
-    csv.ts                  CSV検証・入出力
-    demo.ts                 架空サンプル
-supabase/migrations/        SQL / RLS / RPC
-scripts/seed-recruitment-templates.ts  50社seed・件数確認
-supabase/seed.sql          SQL Editor用の50社seed（再実行可能）
-tests/                      ドメイン・PostgreSQL RLSテスト
-  e2e/                      デスクトップ／スマホの操作テスト
-public/                     PWA manifest・アイコン・Service Worker
+  app/                 ページ・API・Cronルート
+  components/          企業、カレンダー、選考、レビューなどのUI
+  lib/                 型、日付、認証、データ操作
+  services/            URL取得、ルール解析、任意AI、差分、キュー処理
+  db/schema.ts         Drizzleの型付きスキーマ
+supabase/
+  migrations/          テーブル・RLS・RPCの正本（001〜005）
+  diagnostics/         読み取り専用の設定確認SQL
+  seed.sql             50社の公開テンプレート
+  seed-recruitment-sources.sql
+scripts/               seed、実ページ確認、README画像撮影
+tests/                 単体・DB・E2Eテスト
+docs/                  導入・運用・設計と画面画像
 ```
 
-## 検証
+[匿名認証・共有と個人コピーの分離・DB構成 →](docs/architecture.md)
 
-単体・DBテストに加え、既存データのあるv1 DBからの更新と、デスクトップ・スマホの既存操作／v1.1操作を検証します。
+## 開発・検証
 
 ```bash
-pnpm typecheck
-npm run lint
-npm run test
-npm run build
-npm run test:e2e
+pnpm lint
+pnpm test
+pnpm build
+pnpm test:e2e
 ```
 
-単体／DBテストはSupabase接続不要です。PGlite上にSupabaseの `auth.uid()` 相当のテスト用関数を置き、本物のmigration SQLを適用してRLS・複合FK・RPC・トランザクションを検証します。Supabase Authサービス自体やクラウド設定の代替テストではありません。
+`npm run lint` / `npm run test` / `npm run build` でも同じscriptsを実行できます。依存関係のインストールは同梱の `pnpm-lock.yaml` を使ってください。
 
-E2Eは専用ポート3100で明示的なローカルデモを立ち上げ、既存サーバーを再利用せず、Edgeでデスクトップ／iPhone幅をテストします。Edgeがない環境では以下を使えます。
+単体・DBテストは実Supabaseへの接続なしで動作します。PGliteにmigrationを適用してRLS・RPC・コピー独立性・部分承認などを検証します。E2Eはポート3100のデモでデスクトップとスマホ幅を確認します。Supabase Authや本番Cronの動作はデプロイ後に別途確認してください。
 
-```bash
-pnpm exec playwright install chromium
-PLAYWRIGHT_CHANNEL=chromium pnpm test:e2e
-```
+E2Eの既定ブラウザはEdgeです。Chromiumを使う場合の設定やREADME画像の撮り直し手順は、[開発・撮影手順](docs/development.md)を参照してください。
 
-PowerShell：`$env:PLAYWRIGHT_CHANNEL='chromium'; pnpm test:e2e`。
+## 現在の制約
 
-コード整形：
+- **CSVは完全バックアップではありません。** 対象は企業・募集・選考・タスクです。ES・面接・企業研究を含む移行は引き継ぎコードを使います。
+- PWAはホーム画面への追加とオフライン案内に対応します。オフライン編集・同期キュー・バックグラウンドPush通知は未実装です。
+- 自動取得は公開HTMLが対象です。ログイン、CAPTCHA、JavaScript必須のMyPage、PDF・画像からの読み取りは行いません。
+- 自動抽出はページ構造に依存します。未取得・年度不明・複数候補は人の確認が必要で、募集内容の正確性を保証しません。
+- 選考ステップと面接記録の両方に同じ面接日時を設定すると、カレンダーにも両方表示されます。
 
-```bash
-pnpm format
-```
-
-## 公式資料
-
-- [Next.js deployment](https://nextjs.org/docs/app/getting-started/deploying)
-- [Supabase anonymous sign-ins](https://supabase.com/docs/guides/auth/auth-anonymous)
-- [Supabase Row Level Security](https://supabase.com/docs/guides/database/postgres/row-level-security)
-- [Drizzle and Supabase](https://orm.drizzle.team/docs/connect-supabase)
-
-## Vercelで環境変数が未設定と表示される場合
-
-このメッセージはDB接続やRLSの検査結果ではなく、ブラウザ用ビルドに接続設定が入っていないことを示します。SQLの再実行では解消しません。
-
-1. Vercelの対象アプリ → Settings → Environment Variablesで、省略表示ではなく編集画面の完全な名前を確認します。URLは `NEXT_PUBLIC_SUPABASE_URL`、キーは `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` です。
-2. 旧形式の連携向けに `NEXT_PUBLIC_SUPABASE_ANON_KEY` も利用できます。両方ある場合はPublishable keyを優先します。`SUPABASE_URL` や `SUPABASE_PUBLISHABLE_KEY` のように `NEXT_PUBLIC_` がない変数は、ブラウザ用の設定としては読みません。
-3. 名前だけでなく値が空でないこと、URLとキーがSQLを適用した同一プロジェクトのものかを確認します。入力前後の空白・改行はアプリで除去します。
-4. Production（プレビューを使う場合はPreviewにも）に保存し、新しいビルドを作成します。切り分け時はRedeploy画面の「Use existing Build Cache」を外してください。
-5. 最新デプロイのVisitから開き、対象ドメインにそのデプロイが反映されていることを確認します。
-
-修正版では不足している変数の名前だけを画面に表示します。さらにVercelの非デモビルドは設定不足で失敗し、不足変数名をBuild Logsに表示します。キーの値はログに出力しません。既存のデプロイにこの改善を反映するには、修正版をGitHubにpushした後にビルドする必要があります。
-
-`relation "anonymous_users" already exists` が出た場合、元のCREATE文を繰り返さず、`supabase/diagnostics/check_setup.sql` で既存オブジェクトの有無とRLSの有効化を確認できます。このSQLはデータを変更しません。すべてOKでも、Vercel環境変数や接続先プロジェクトの一致は別途確認が必要です。
-
-## v1.1で追加・改善した機能
-
-- 「募集を探す」：企業名・別名、業界、職種／企業分野タグ、卒年度、募集種別、募集中のみの検索。企業追加中も候補を表示。
-- 「すべて引用」：表示中の公開募集をまとめて応募予定へ追加。引用済みは除外し、志望度は未設定で保存します。通常の引用後は検索・絞り込みを保ったまま募集一覧に留まり、「コピーして編集」の場合のみ編集画面へ移動します。
-- 公式URL・情報元・確認状態・最終確認日・募集状況を表示。URL不明の投稿は他ユーザーに提供しません。
-- 「応募予定に追加」「コピーして編集」：公開フローを含む独立コピーをトランザクションで作成。志望度は未設定で始まり、追加後に選択できます。
-- 気になる企業（watchlist）、非公開の情報訂正報告、最近追加された募集をダッシュボードに表示。
-- 締切更新通知：`copied_application_deadline` と公開テンプレートの現在値を比較。個人側で変更した値とは別にコピー時点を保持し、確認ダイアログから明示反映。途中で公開締切が変わった場合は再読込を要求します。
-- 選考フローの7状態、ドラッグ操作、キーボード／スマホ対応の上下ボタン。表示順更新は全ステップを原子的に保存。
-- 選考の日付設定でタスクを自動生成。`selection_step_id` の一意制約と所有者を含む複合FKで重複・他ユーザーへの紐づけを防止。完了状態は双方向同期。タスクのメモは保持。
-- カレンダーは既存の派生方式を維持し、日付変更・削除が即反映。自動生成タスクは予定・進捗の二重集計から除外。
-- 設定画面のタスク自動作成／カレンダー自動追加スイッチをDBに保存。タスク自動作成OFFは新規生成を止め、既存タスクは保持して期限・完了を同期。既存ステップの一括タスク生成は行わず、日付などを保存したときに生成します。
-- ダッシュボードは今日、3日以内の締切、今週、次の選考、応募予定、選考中、内定、公開募集、気になる企業、締切更新の順。
-- ESの未着手／下書き／完成／提出済み、提出日時、Unicode文字数、本人だけの過去ES検索。
-- 面接の場所／URLと複数の質問・回答。既存の自由記述形式も表示・編集可能。
-- 3ファイルCSV（applications / tasks / selection_steps）と従来CSVをサポート。インポートは既存企業を変更せず新規追加し、ステップと自動タスクの関連も復元。
-- 既存の匿名認証・安全な引き継ぎコード・下部ナビ・PWAを継続。追加したwatchlist／報告／設定もコードで移行。
-
-### v1.0からの本番更新手順（既存データを保持）
-
-1. Supabaseで対象プロジェクトを確認します。運用上のバックアップを確保し、可能なら検証用DBへ先行適用します。
-2. SQL Editorで **`supabase/migrations/202609220003_v11.sql`**、続いて **`supabase/migrations/202609230004_capacity_deadlines.sql`** を全文実行します。003まで適用済みなら004だけを実行します。001・002を適用済みなら再実行しません。003はトランザクション内の列／テーブル追加・制約拡張・関数置換で、既存テーブル・行を削除しません。列追加後に旧CSV RPCを更新するため、必ず全文を適用してください。
-3. **`supabase/seed.sql`** を全文実行します（seedは再実行可）。結果2行の各件数が50か確認します。
-4. 任意で `supabase/diagnostics/check_v11.sql` を実行します。RLS・新規列・関数・seed件数を読み取り専用で確認できます。
-5. ローカルで `pnpm install --frozen-lockfile`、`npm run lint`、`npm run test`、`npm run build` を実行します。pnpmの同名scriptsでも同じ検証です。TypeScriptはESLintの対応APIに合わせて6.0.2に固定しています。
-6. コード・`pnpm-lock.yaml`・`pnpm-workspace.yaml` をGitHubへpushし、既存Vercelプロジェクトを再デプロイします。環境変数の追加はありません。URLと公開キー、`NEXT_PUBLIC_DEMO_MODE=false` を維持します。
-7. 本番で企業追加、再アクセス、募集検索→保存→追加、選考の日付→タスク／カレンダー連携、ES／面接の保存を確認します。別ブラウザで個人データが見えないことも確認します。
-
-`supabase db reset` や `drizzle-kit push` を本番更新に使用しないでください。003適用後に問題があってもDBを削除せず、修正migrationで前進する運用です。既存の匿名IDやセッションストレージ名は変更しません。
-
-### v1.1 DB追加項目と運用
-
-| 対象                  | 追加項目                                                                                                             |
-| --------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| companies             | tags、aliases、seed_key（unique）                                                                                    |
-| recruitment_templates | source_url、source_type、last_verified_at、verification_status、application_status、notes_public、seed_key（unique） |
-| user_applications     | copied_application_deadline、last_verified_at、priorityの「未設定」                                                  |
-| selection_steps       | state、所有者・親企業を含む一意制約                                                                                  |
-| tasks                 | selection_step_id（unique、所有者付きFK）                                                                            |
-| es_questions          | submitted_at、statusの「未着手」                                                                                     |
-| interview_notes       | location_or_url、qa_pairs（JSON配列）                                                                                |
-| user_preferences      | user_id、auto_create_tasks、auto_calendar                                                                            |
-| watchlist             | user_id、recruitment_template_id、created_at（所有者と募集の組でunique）                                             |
-| template_reports      | template_id、user_id、report_type、comment、created_at                                                               |
-
-追加の個人テーブルにもRLSを適用しています。自分の訂正報告は自分とDB管理者のみ参照でき、公開テンプレートに本文を転載しません。報告の受付UIは実装済みですが、管理者向け審査画面・自動審査・メール送信はありません。管理者はSupabase Table Editorで `template_reports` を確認します。
-
-一般ユーザーはverification/source/date列を直接変更できません。投稿RPCは公式URLと明示選択された公開フローだけを許可し、投稿者が送信したverified・私的メモなどの余剰項目を破棄します。投稿は常にuser_submitted / unverified。情報を確認した管理者がTable Editorで公式情報に基づくsource_type、source_url、last_verified_at、verification_status、application_status、日程を更新します。**verifiedにはofficialまたはcompany_mypageの非NULLのURLと最終確認日が必須**です。監視データを確認せずverified/open/upcomingに一括変更しないでください。
-
-公開募集の締切更新はアプリで最大60秒ごと・画面復帰時に取得します。募集サイトの自動巡回ではありません。非公開化された募集の更新は通知できませんが、既存の個人コピーは残ります。
-
-DB testsでは匿名JWT相当の2ユーザーを使ってES・面接・タスク・選考結果・志望度・メモ・設定・保存・報告を隔離し、コピー独立性、締切反映、タスク同期、引き継ぎ、seed件数／再実行、旧データ保全を検証します。初回サインイン／再訪セッションの維持はSDKモックで検証し、実Supabase Authのスモークテストは本番更新後に別途実施してください。
-
-### 2026-09-23：定員締切・募集終了・同一企業の複数職種
-
-- 企業／募集の編集で「締切の種類」を「定員に達し次第終了」にできます。日付は空欄で保存でき、最終締切が併記されている募集は日付も設定できます。日付がなければカレンダーに仮の日付は作りません。
-- 「募集状況」は選考ステータスとは別に保存します。詳細の「募集終了にする」、または編集フォームで終了を記録できます。「募集中に戻す」で解除可能です。選考中・内定やES・面接・タスクは維持します。終了した募集はホームの応募予定候補と応募締切のリマインドから外れ、既存の面接・タスクは残ります。
-- 自分の記録を終了にしても公開テンプレートや他ユーザーの記録は変更しません。自分が投稿した公開募集には「募集終了にする」ボタンがあり、他の投稿者の募集は「情報が違う」から報告できます。
-- 企業一覧の標準表示は「企業ごと」です。同じ企業マスターIDを優先し、企業IDがない手入力の募集は企業名を全半角・英字大小・空白を正規化してまとめます。似ているだけの企業名や子会社は自動統合しません。テーブル／カード表示も継続利用できます。
-- 「別の職種・募集を追加」は企業名・業界・卒年度のみをフォームへ引き継ぎます。詳細上部から募集を切り替えられ、募集ごとの締切・選考・ES・タスクは独立して保存します。元のデータやIDは統合・削除しません。
-- 定員締切と募集状況は公開・引用・CSV往復に対応します。既存CSVも読み込み可能です。公開募集の締切種別が変わった場合も更新通知を表示し、「更新を反映」時にのみ個人側へ反映します。
-
-**本番反映（003まで適用済みの場合）**
-
-1. Supabase SQL Editorで `supabase/migrations/202609230004_capacity_deadlines.sql` を全文実行してください。列追加と関数更新のみで、既存データ・RLS・匿名ユーザーIDを保持します。既存の募集状況は「要確認」、締切種別は従来の日付指定になります。004は1回だけ実行してください。
-2. `supabase/diagnostics/check_capacity_deadlines.sql` で列・関数・RLSの有無を確認できます。seedの再実行や環境変数追加は不要です。
-3. コードをGitHubへ反映し、Vercelで再デプロイしてください。DB更新を先に行います。
-
-ローカルでは `npm run lint`、`npm run test`、`npm run test:e2e`、`npm run build` で検証します。本番DBへのmigration適用・本番デプロイはこのコード変更だけでは行われません。
-
-## 公式採用ページの自動取得（追加機能）
-
-有料AI APIなしで、公開採用ページの取得・本文ハッシュ比較・ルール解析・差分候補・手動承認まで動きます。OpenAI APIは使用しません。Geminiは任意です。
-
-企業詳細の「採用ページURLを追加」→「最新情報を取得」、または企業追加ダイアログの「URLから登録」を使います。取得はバックグラウンドジョブとなり、`/templates/updates`で取得状況・変更前後・証拠テキスト・解析方式・信頼度を確認できます。反映する項目を選び、企業・卒年度・反映先を確認します。日程のカレンダー追加は初期ON、タスク生成は初期OFFです。既存のカレンダー全体設定がOFFなら選考ステップは表示されません。
-
-### 本番更新の順序
-
-1. 004まで適用済みのDBで、`supabase/migrations/202609230005_recruitment_monitor.sql`を**全文、一度だけ**実行します。既存テーブル・行・匿名IDは削除しません。旧CSV取り込み関数も新しい列に対応させるため、途中までの実行はしないでください。
-2. `supabase/seed-recruitment-sources.sql`を実行します。既存50社の公開採用URLを監視対象へコピーし、既存URLや監視設定を上書きしません。何度実行しても同じURLは増えません。末尾の`monitored_seed_companies`が50であることを確認します。元の50社seedが未適用なら先に`supabase/seed.sql`を適用してください。
-3. VercelのProduction環境に下表の環境変数を設定し、コードを再デプロイします。プレビューでは定期実行を有効にしない運用を推奨します。
-4. 企業詳細から1社を手動取得し、レビュー→自分の応募へ反映→カレンダーで確認します。その後Cronを有効にします。
-
-| 変数                                 | 必須・用途                                                                            |
-| ------------------------------------ | ------------------------------------------------------------------------------------- |
-| NEXT_PUBLIC_SUPABASE_URL             | 既存設定を維持                                                                        |
-| NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY | 既存設定を維持。ANON_KEY互換も継続                                                    |
-| NEXT_PUBLIC_DEMO_MODE                | 本番はfalse                                                                           |
-| SUPABASE_SERVICE_ROLE_KEY            | バックグラウンド処理に必須。Supabaseのサーバーキー。代わりにSUPABASE_SECRET_KEYでも可 |
-| CRON_SECRET                          | 定期処理を保護するランダムな長い秘密値                                                |
-| RECRUITMENT_MONITOR_ENABLED          | trueでCronを有効化。未設定ならCronは何もしない                                        |
-| GEMINI_API_KEY                       | **任意**。未設定でも正常動作                                                          |
-| RECRUITMENT_AI_ENABLED               | trueで任意AI補助を全体で許可。既定OFF                                                 |
-| RECRUITMENT_GEMINI_MODEL             | 任意。既定gemini-2.5-flash-lite                                                       |
-| RECRUITMENT_AI_MONTHLY_LIMIT         | 任意。AI呼び出しの全体月間上限、既定50回                                              |
-| DATABASE_URL                         | CLI migration/seedを実行する場合のみ。通常のURL取得には不要                           |
-
-サーバーキー・Geminiキー・Cron秘密値に`NEXT_PUBLIC_`を付けないでください。アプリにログイン画面は追加しません。ブラウザの匿名SupabaseセッションをBearerトークンで検証し、APIとRPCは既存の`auth.uid()`を使用します。
-
-### 公開情報と個人情報の分離
-
-自動処理が書くのはソース、スナップショット、ジョブ、更新候補のみです。`recruitment_templates`へ反映できるのは明示的な承認RPCだけです。一般ユーザーは公開候補を自分の応募へ取り込めます。公開テンプレートの変更は投稿者またはレビュー担当者に限定しています。個人に取り込んだ記録は公開テンプレート更新に追従しません。
-
-seedテンプレートをレビューする運営担当はSupabase SQL Editorから指定します（担当者のUUIDはSupabase Authenticationの匿名ユーザーを確認してください。引き継ぎコードではありません）。
-
-```sql
-insert into public.recruitment_reviewers(user_id)
-values ('担当者の匿名ユーザーUUID')
-on conflict do nothing;
-```
-
-承認時に選択したフィールドの変更前の値を照合し、別の更新との競合を検出します。投稿URLは人が承認しても自動でverified扱いにはしません。取得した注記・応募資格は個人メモと別の列に保存します。ユーザーが追加したURL・候補は原則そのユーザーだけに見え、承認を経て公開可能です。ES、面接、個人タスク、志望度、個人メモは取得処理のクエリにもAI入力にも含めません。
-
-### 解析と日時
-
-- `services/recruitment-rule-parser.ts`が卒年度・職種・募集区分・応募期間・締切・ES/Webテスト/面接・選考フローを抽出します。複数年度・複数職種は見出し単位で分離します。
-- 日付は明確な記載だけを採用します。`2028卒`だけでは応募日の暦年を判断できないため、`10/5`を2028年10月5日に補完しません。曖昧な日程や複数候補はnullと警告になります。年度不明の候補は承認時に人の確認が必要です。
-- 日付のみは`YYYY-MM-DD`、明示時刻は`YYYY-MM-DDTHH:mm:ss+09:00`。23:59などを補いません。既存DATE列を保持し、`*_value`列で日時精度を保存します。開催日の終日はカレンダー上で期間の最終日も含めます。
-- 定員に達し次第終了、MyPage限定、未定・順次公開を保持します。取得情報の正しさや採用の継続を保証する機能ではありません。必ず公式ページと証拠を確認してください。
-- 同一本文ハッシュならルール解析・AI解析・候補生成すべてをスキップ。スナップショットは候補保存と同一トランザクションで確定するため、失敗して候補だけ消える状態を避けます。
-- Geminiはキーあり・AI許可・28卒の記載あり・ルール信頼度0.65未満の場合のみ補助。高信頼の締切取得済み、変更なし、他年度のみなら呼びません。出力をZod JSON Schemaと証拠引用で検証し、失敗時はルール結果を利用します。無料枠の有無・上限は利用するGoogleアカウントとモデルに依存します。料金が一切発生しない保証ではないため、無料のみの運用ならキーを設定しないでください。
-- 設定画面にキーの設定有無、AI利用可否、閲覧可能なジョブの今月の解析回数を表示します（最大1000件）。キーの値は返しません。
-
-### キューとCron
-
-`vercel.json`に24本の「1日1回」のCronを分散登録しています。各回、優先度に応じて期限の来た企業をキューへ入れ、最大3社を順番に処理します。50社同時アクセスは行いません。最初の一括チェックは数時間かけて消化されます。1社が長時間かかる場合は次のCronへ持ち越します。手動ボタンも同期で50社取得せずキューへ追加します。
-
-初期50社はmedium（3.5日ごと）、highは1日、lowは7日ごとです。企業詳細から自分の監視頻度を変更できます。共有ソースへのhigh指定は共有取得の頻度を上げますが、個人の志望度・応募状況は公開しません。共有ソースを停止する場合は運営側で`company_sources.monitor_enabled=false`にします。個人設定のOFFは他ユーザーの共有監視を停止しません。
-
-Cron APIは`Authorization: Bearer CRON_SECRET`で保護し、ジョブはDBロック・リースで二重実行を防止します。中断したリースは10分後に再試行し、3回で打ち切ります。同一企業の手動取得には10分の間隔、1匿名ユーザーに1日60回の上限があります。AI回数はDBで月間上限をロックして予約します。
-
-[Vercel Cronの制限](https://vercel.com/docs/cron-jobs/usage-and-pricing)に従って利用してください。Hobbyでは各Cronは1日1回で実行時刻の精度は保証されません。関数実行・Supabaseの容量などプラットフォーム費用は別途上限管理が必要です。定期実行が無効でも手動1社取得は動作します。一括キューを継続消化するにはCronが必要です。
-
-### robots.txt・取得制限・セキュリティ
-
-1企業最大5ページ・深さ2、各リクエスト約10秒、HTML上限2MB、本文上限50,000文字。robots.txtを先に確認し、拒否や確認不能なら取得を止めます。明示User-Agentで同一ホストは原則2秒以上空け、Crawl-delayも考慮します。ログイン、CAPTCHA、認証が必要なMyPage、非公開APIは取得しません。JS実行や画像/PDF OCRによる補完は行いません。別ホストへ転送された場合も自動では進まず、その公式URLを別途登録します。
-
-SSRFはURL正規化、許可プロトコルとポート、全DNS応答のpublic IP確認、検証済みアドレスへのソケット固定、リダイレクト毎の再確認で防止します。localhost、private/link-local、IPv6 local/mapped、metadataなどは拒否。robots取得にも同じ制限を適用します。HTMLのスクリプトや本文中の指示は実行しません。
-
-### 検証
-
-`npm run lint` / `npm run test` / `npm run test:e2e` / `npm run build`。
-DBテストはPGlite上で匿名2ユーザーのRLS、候補のみの保存、部分承認、競合、公開変更の権限、個人コピー独立性、カレンダーOFF、タスク生成、50社seedの再実行を確認します。
-
-実ページ確認は `pnpm exec tsx scripts/check-recruitment-pages.ts`。Geminiを呼ばず、3社を順番に取得して`reports/recruitment-live-check.json`へ結果を保存します。本番DBには書き込みません。今回の結果はMoney ForwardとNTT東日本で候補抽出、NECはrobots.txt取得に403が返り停止でした。28卒や日付が見つからないページを推測で埋めていません。**3社すべての締切抽出に成功したという結果ではありません。**
-
-運用上の制約：自動抽出は見出し・表の構造に依存し、複雑な対応関係は手動確認となります。初期URLが別ホストの募集詳細へリンクしている場合は、そのURLを追加してください。ブラウザ通知の代わりにアプリ内のホーム通知を使います。本番DBへの適用・本番Cron・実Gemini呼び出しは環境設定後に確認してください。
-
-追加した監視URL・候補・監視設定・確認履歴は、既存の引き継ぎコードでも移行します。同じURLが両端末にある場合は履歴を保持して統合します。公開レビュー担当の権限だけは管理者が改めて指定してください。
+詳細は[運用上の制約](docs/recruitment-monitoring.md#取得制限と運用上の制約)と[データ保護](docs/architecture.md#匿名利用とデータ保護)を確認してください。
